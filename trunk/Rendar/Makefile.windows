@@ -1,0 +1,16 @@
+CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
+
+OBJS =	src/*.cpp
+INCS = -I"C:\MinGW\include\GL" -I"./headers/" -I"./game/"
+LIBS = -lglu32 -lfreeglut -lopengl32 -Wl,--subsystem,windows
+
+TARGET = rendarar.exe
+
+$(TARGET):	$(OBJS)
+	$(CXX) -o $(TARGET) $(OBJS) $(LIBS) $(INCS)
+
+all:	$(TARGET)
+
+clean:
+	rm -f src/*.o $(TARGET)
+
