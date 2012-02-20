@@ -115,6 +115,9 @@ void Console::Draw()	{
     glPopMatrix();
     glEnable(GL_DEPTH_TEST);
 
+    // set font color
+    glColor3f(0.0, 1.0, 0.0);
+
 	// Seek scroll position
 	strItr = output->end();
 	for(int x=0; x < minusIndex; x++)
@@ -151,12 +154,14 @@ void Console::processConsoleCommand(const string conInput)	{
 	this->input->push_front(input);
 	this->output->push_back(">" + input);
 
-	string strin = conInput;
+	string strin = input;
 	string_tolower(strin);
 	char line[MAX_CONSOLE_LINE_LEN];
 	strcpy(line, strin.c_str());
 	char *token = strtok(line, WHITESPACE);
 	string cmd = token;
+
+	string content = input.substr(input.find_first_of(" ")+1);
 
 	int hash = generateHash(cmd);
 	if( registeredCommands[hash].func != NULL || registeredCommands[hash].func1 != NULL )	{
@@ -167,7 +172,7 @@ void Console::processConsoleCommand(const string conInput)	{
 		}
 		else	{
 			void (*f2)(string) = registeredCommands[hash].func1;
-			(*f2)(input);
+			(*f2)(content);
 		}
 
 	}
