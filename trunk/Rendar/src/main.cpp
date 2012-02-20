@@ -199,9 +199,6 @@ void processNormalKeys(unsigned char key, int x, int y)	{
 
 	if( con->consoleActive )	{	// send key input to console
 		switch(key)	{
-			case CONSOLE_KEY:	// deactivate console
-					con->consoleActive = !con->consoleActive;
-				break;
 			case ESC_KEY:
 				con->clearInput();
 				break;
@@ -211,16 +208,6 @@ void processNormalKeys(unsigned char key, int x, int y)	{
 		}
 	}
 	else	{	// Don't send key input to console
-		// supplimentary control, pass to game.
-		switch(key)	{
-			case CONSOLE_KEY:
-				con->consoleActive = !con->consoleActive;
-				break;
-			case ESC_KEY:
-				shutdown();
-				break;
-		}
-
 		// TODO forward to game
 //		keyPressed(key, x, y);
 	}
@@ -228,7 +215,35 @@ void processNormalKeys(unsigned char key, int x, int y)	{
 }
 
 void processSpecialKeys(int key, int x, int y) {
-	// TODO forward to game
+	if( con->consoleActive ) 	{
+		switch(key)	{
+			case GLUT_KEY_F1:
+				con->consoleActive = !con->consoleActive;
+				break;
+			case GLUT_KEY_UP:
+				con->previousCommand();
+				break;
+			case GLUT_KEY_DOWN:
+				con->nextCommand();
+				break;
+			case GLUT_KEY_PAGE_UP:
+				con->scrollUp();
+				break;
+			case GLUT_KEY_PAGE_DOWN:
+				con->scrollDown();
+				break;
+		}
+	}
+	else	{
+		switch(key)	{
+			case GLUT_KEY_F1:
+				con->consoleActive = !con->consoleActive;
+				break;
+			default:
+				// send to game
+				break;
+		}
+	}
 }
 
 void passiveMouseMove(int x, int y)	{
