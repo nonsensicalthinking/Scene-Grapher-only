@@ -10,6 +10,7 @@
 #include <string>
 #include <list>
 #include <stdarg.h>
+#include <map>
 
 #ifndef CONSOLE_H_
 #define CONSOLE_H_
@@ -30,7 +31,10 @@ typedef struct consoleCommand_t	{
 
 class Console {
 public:
-	cmd_t registeredCommands[MAX_CONSOLE_COMMANDS];
+
+//	cmd_t registeredCommands[MAX_CONSOLE_COMMANDS];
+
+	map<string, cmd_t*> registeredCommands;
 
 	bool consoleActive;
 	string inputString;

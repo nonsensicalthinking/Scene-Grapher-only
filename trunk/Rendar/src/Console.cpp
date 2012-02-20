@@ -26,15 +26,16 @@ Console::Console(int width, int height) {
 	minusIndex = 1;
 	cmdHistoryIndex = 0;
 	output->push_back("");	// FIXME: need 1 bogus entry in the console
-
-	for(int x=0; x < MAX_CONSOLE_COMMANDS; x++)	{
-		registeredCommands[x].func = NULL;
-		registeredCommands[x].func1 = NULL;
-	}
-
 }
 
 Console::~Console() {
+
+	map<string, cmd_t*>::iterator itr;
+	for(itr=registeredCommands.begin();itr!=registeredCommands.end();itr++)	{
+		cmd_t* cmd = (*itr).second;
+		delete cmd;
+	}
+
 	delete input;
 	delete instr;
 	delete output;
@@ -198,46 +199,51 @@ void Console::processConsoleCommand(const string conInput)	{
 	string cmd = input.substr(0, input.find_first_of(" "));
 	string content = input.substr(input.find_first_of(" ")+1);
 
-	int hash = generateHash(cmd);
-	if( registeredCommands[hash].func != NULL || registeredCommands[hash].func1 != NULL )	{
+	map<string, cmd_t*>::iterator itr = registeredCommands.find(cmd);
 
-		if( !registeredCommands[hash].hasArgs )	{
-			void (*f1)() = registeredCommands[hash].func;
+	if( itr != registeredCommands.end() )	{
+		cmd_t* command = (*itr).second;
+		if( !command->hasArgs )	{
+			void (*f1)() = command->func;
 			(*f1)();
 		}
 		else	{
-			void (*f2)(string) = registeredCommands[hash].func1;
+			void (*f2)(string) = command->func1;
 			(*f2)(content);
 		}
 
 	}
+	else
+		Con_print("Command not found: %s", cmd.c_str());
 
 }
 
 
 void Console::registerCommand(string name, void (*func)())	{
-	int index = generateHash(name);
+	cmd_t* cmd = new cmd_t;
+	cmd->name = name;
+	cmd->func = func;
+	cmd->hasArgs = false;
 
-	if( registeredCommands[index].func == NULL && registeredCommands[index].func1 == NULL )	{
-		registeredCommands[index].name = name;
-		registeredCommands[index].func = func;
-		registeredCommands[index].hasArgs = false;
+	if( registeredCommands.find(cmd->name) == registeredCommands.end() )	{
+		registeredCommands[cmd->name] = cmd;
 	}
 	else	{
-		Con_print("Hash Conflict: %s has identical hash to %s", name.c_str(), registeredCommands[index].name.c_str());
+		Con_print("Hash Conflict: %s has identical hash to %s", name.c_str(), name.c_str());
 	}
 }
 
 void Console::registerCommand(string name, void (*func)(string), bool hasArgs)	{
-	int index = generateHash(name);
+	cmd_t* cmd = new cmd_t;
+	cmd->name = name;
+	cmd->func1 = func;
+	cmd->hasArgs = true;
 
-	if( registeredCommands[index].func == NULL && registeredCommands[index].func1 == NULL )	{
-		registeredCommands[index].name = name;
-		registeredCommands[index].func1 = func;
-		registeredCommands[index].hasArgs = true;
+	if( registeredCommands.find(cmd->name) == registeredCommands.end() )	{
+		registeredCommands[cmd->name] = cmd;
 	}
 	else	{
-		Con_print("Hash Conflict: %s has identical hash to %s", name.c_str(), registeredCommands[index].name.c_str());
+		Con_print("Hash Conflict: %s has identical hash to %s", name.c_str(), name.c_str());
 	}
 }
 
