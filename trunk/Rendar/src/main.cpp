@@ -15,6 +15,7 @@
 #include "shared.h"
 #include "strtools.h"
 #include <stdarg.h>
+#include <GL/glext.h>
 
 #ifdef _WIN32
 #include <direct.h>
