@@ -16,6 +16,13 @@
 #include "strtools.h"
 #include <stdarg.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
+#ifdef linux
+#include <unistd.h>
+#endif
+
 #define MAX_CVARS 1024
 
 using namespace std;
@@ -27,6 +34,19 @@ Console* con;
 
 cvar_t configVars[MAX_CVARS];
 
+string programPath;
+
+string getProgramPath()	{
+	return programPath;
+}
+
+string getCWD()	{
+	char path[1024];
+	size_t size;
+	getcwd(path,size);
+	string s = string(path);
+	return s;
+}
 
 void drawConsole()	{
 	if( con->consoleActive )
@@ -74,10 +94,10 @@ string* getCvarAddress_S(string name)	{
 void printCvar(string args)	{
 	char parse[512];
 	strncpy(parse, args.c_str(), 512);
-	char* cmd = strtok(parse, " \t\n\r");
-	char* cvar = strtok(NULL," \t\n\r");
+	char* cvar = strtok(parse," \t\n\r");
 	string s = cvar;
 	string_tolower(s);
+
 
 	int hash = generateHash(s);
 
@@ -260,7 +280,26 @@ void printGLInfo()	{
 
 }
 
+void LoadModel(string path)	{
+	if( rendarar )
+		rendarar->LoadModel(path);
+}
+
+void LoadMap(string name)	{
+	if( rendarar )	{
+		Con_print("Loading map: %s", name.c_str());
+		rendarar->bspFromObjModel(name);
+	}
+}
+
+void polygonCount()	{
+	if( rendarar )
+		Con_print("Cached polygons in scene: %d", rendarar->getCachedPolygonCount());
+}
+
 int main(int argc, char** argv) {
+
+	programPath = getCWD();
 
 	initCvars();
 	registerCvar("name", 			"defaultPlayer", 	STRING_CVAR);
@@ -269,6 +308,9 @@ int main(int argc, char** argv) {
 	registerCvar("src_full", 		"0", 				INT_CVAR);
 	registerCvar("scr_fov",			"45",				INT_CVAR);
 	registerCvar("g_gravity", 		"9.8", 				DOUBLE_CVAR);
+	registerCvar("cwd",				getCWD(),			STRING_CVAR);
+	registerCvar("r_modelPath",		getCWD()+"/models/",STRING_CVAR);
+	registerCvar("r_imagePath", 	getCWD()+"/images/",STRING_CVAR);
 
 	glutInit(&argc, argv);
 
@@ -285,10 +327,13 @@ int main(int argc, char** argv) {
 	con = new Console(800,600);
 	registerCommand("quit", shutdown);
 	registerCommand("echo", echo, true);
-	registerCommand("set", setCvar, true);
-	registerCommand("print", printCvar, true);
+	registerCommand("s", setCvar, true);
+	registerCommand("p", printCvar, true);
 	registerCommand("vid_restart", vid_restart);
 	registerCommand("gl_info", printGLInfo);
+	registerCommand("gl_loadmodel", LoadModel, true);
+	registerCommand("gl_loadmap", LoadMap, true);
+	registerCommand("gl_polycount", polygonCount);
 
 
 	rendarar->run();

@@ -100,8 +100,12 @@ typedef struct polygon_s	{
 inline int generateHash(string value)	{
 	int len = value.length();
 	int hash = 119;
+	bool everyOther = false;
+
 	for(int x=0; x < len; x++)	{
-		hash *= (int)value.at(x);
+			hash += (int)value.at(x);
+
+		everyOther = !everyOther;
 		hash %= 1024;
 	}
 
