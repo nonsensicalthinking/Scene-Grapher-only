@@ -25,10 +25,10 @@ extern string getProgramPath();
 
 Rendar::Rendar(string windowTitle) {
 	// register cvars
-	registerCvar("r_wireFramePolys", "0", INT_CVAR);
+	registerCvar("r_wireframepolys", "0", INT_CVAR);
 
 	// get addresses for newly registered cvars
-	r_wireFramePolys = getCvarAddress_I("r_wireFramePolys");
+	r_wireFramePolys = getCvarAddress_I("r_wireframepolys");
 	scr_width = getCvarAddress_I("scr_width");
 	scr_height = getCvarAddress_I("scr_height");
 	scr_full = getCvarAddress_I("scr_full");
@@ -57,7 +57,7 @@ Rendar::~Rendar() {
 	cout << "Shutdown: Main loop exited." << endl;
 
 	glutDestroyWindow(winPtr);
-	cout << "Shutdown: Window destroyed." << endl;
+	cout << "Shutdown: GLWindow destroyed." << endl;
 
 	if( matsMgr )	{
 		delete matsMgr;
@@ -97,6 +97,44 @@ void Rendar::run(void)	{
 }
 
 void Rendar::lighting()	{
+	GLfloat df = 1.0;
+	GLfloat amb[]=	{0.5, 0.5, 0.5, 1};   		//global ambient
+
+	GLfloat amb2[]=	{1, 1, 1, 1};  		//ambiance of light source
+	GLfloat diff[]=	{1.0, 1.0, 1.0, 1.0};	// diffuse light
+	GLfloat spec[]=	{1.0, 1.0, 1.0, 1.0};      	//sets specular highlight
+	GLfloat posl[]=	{-21, 75, 18, 1};            //position of light source
+
+//	GLfloat posL1[] = {0, 5, 0};
+//	GLfloat spotDir[] = {0, -1, 0};
+
+
+
+	glMaterialfv(GL_FRONT, GL_SPECULAR, spec);
+//	glMaterialfv(GL_FRONT, GL_SHININESS, &df);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	// global ambiance
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
+	glShadeModel(GL_SMOOTH);
+
+	// Light 0
+	glLightfv(GL_LIGHT0, GL_AMBIENT, amb2);
+//	glLightfv(GL_LIGHT0, GL_DIFFUSE, diff);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, spec);
+	glLightfv(GL_LIGHT0, GL_POSITION, posl);
+
+//	glEnable(GL_COLOR_MATERIAL);
+//	glColorMaterial(GL_FRONT, GL_AMBIENT);
+
+	// Light 1
+//	glLightfv(GL_LIGHT1, GL_AMBIENT, amb2);
+//	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spotDir);
+//	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 15.f);
+//	glLightfv(GL_LIGHT1, GL_SPECULAR, spec);
+//	glLightfv(GL_LIGHT1, GL_POSITION, posL1);
+//	glEnable(GL_LIGHT1);
 
 }
 
@@ -111,6 +149,8 @@ void Rendar::draw(void)	{
 				cam->up[0], 	cam->up[1], 	cam->up[2]);		// up direction
 
 //	glutWarpPointer(400, 300);	// center mouse
+
+	lighting();
 
 	glTranslated(0, 0, 10);
 	glColor3f(0.0, 0.0, 0.0);
@@ -155,12 +195,12 @@ void Rendar::changeSize(int width, int height)	{
 
 
 void Rendar::drawPolygon(polygon_t* poly)	{
-	if( poly->glCached )	{
+	if( poly->glCached && *r_wireFramePolys != 1 )	{
 		glCallList(poly->glCacheID);
 	}
 	else	{
 		glPushMatrix();
-		if( r_wireFramePolys )	{	// draw wire frame for polygons
+		if( *r_wireFramePolys == 1 )	{	// draw wire frame for polygons
 			glBegin(GL_LINE_STRIP);
 			for(int x=0; x < poly->numPoints; x++)	{
 				glVertex3f(poly->points[x][0], poly->points[x][1], poly->points[x][2]);
@@ -215,11 +255,11 @@ void Rendar::renderBSPTree(bsp_node_t* tree)	{
 
 
 void Rendar::bspFromObjModel(string modelName)	{
-	string path = getProgramPath();
-	path += "/models/obj/" + modelName;
+	string* path = getCvarAddress_S("r_modelPath");
+	string canonicalPath = *path + "obj/" + modelName;
 
 	ObjModel* obj = new ObjModel();
-	obj->loadObjFile(path);
+	obj->loadObjFile(canonicalPath);
 
 	vec3_t mapDimensions;
 	obj->getDimensions(mapDimensions);

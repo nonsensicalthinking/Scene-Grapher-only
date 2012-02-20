@@ -7,6 +7,13 @@
 #include "WavefrontObj.h"
 #include <cmath>
 
+//#define OBJDEBUG
+//#define OBJMATDEBUG
+
+extern void Con_print(const char* fmt, ...);
+extern string* getCvarAddress_S(string s);
+
+
 ObjModel::ObjModel()	{
 	x_max = x_min = y_max = y_min = z_max = z_min = 0;
 }
@@ -19,6 +26,7 @@ bool ObjModel::loadObjFile(string s)	{
 	FILE* fp;
 	if( !(fp=fopen(s.c_str(), "r")) )	{
 		error = "OBJ file not found";
+		Con_print("Obj: File not found - %s", s.c_str());
 		return false;
 	}
 
@@ -39,9 +47,6 @@ bool ObjModel::loadObjFile(string s)	{
 
 // perform these checks so we can create a bounding box elsewhere.
 void ObjModel::doMaxCheck(float val, char axis)	{
-
-	cout << "Checking [" << val << "] on axis: " << axis << endl;
-
 	switch(axis)	{
 	case 'x':
 		if( val > x_max )
@@ -258,9 +263,18 @@ void ObjModel::initializeMaterial(material_t* mat)	{
 }
 
 bool ObjModel::loadMTLFile(const char* fileName)	{
+	cout << "Loading material file: " << fileName << endl;
+
 	FILE* fp;
-	if( !(fp=fopen(fileName, "r")) )	{
+	string* modelPath = getCvarAddress_S("r_modelPath");
+
+	string canonicalPath = *modelPath + "obj/" + fileName;
+
+	cout << "From file path: " << canonicalPath << endl;
+
+	if( !(fp=fopen(canonicalPath.c_str(), "r")) )	{
 		error = "OBJ Materials file not found";
+		Con_print("Obj: File not found - %s", canonicalPath.c_str());
 		return false;
 	}
 
@@ -272,7 +286,7 @@ bool ObjModel::loadMTLFile(const char* fileName)	{
 		char in[MAX_OBJ_LINE_LEN];
 		fgets(in, MAX_OBJ_LINE_LEN, fp);
 		char incpy[MAX_OBJ_LINE_LEN];
-#ifdef OBJDEBUG
+#ifdef OBJMATDEBUG
 		cout << "MAT Line: " << in << endl;
 #endif
 		strcpy(incpy, in);
@@ -295,12 +309,12 @@ bool ObjModel::loadMTLFile(const char* fileName)	{
 				if( !tm->hasMaterial(token) )	{
 					tm->addMaterial(token, newmat);
 					mat = newmat;
-#ifdef OBJDEBUG
+#ifdef OBJMATDEBUG
 					cout << "New material created: " << token << endl;
 #endif
 				}
 				else	{
-#ifdef OBJDEBUG
+#ifdef OBJMATDEBUG
 					cout << "MTL Error: Material redefinition: " << token << endl;
 #endif
 				}
@@ -329,10 +343,10 @@ bool ObjModel::loadMTLFile(const char* fileName)	{
 			else if( !strcmp(token, "map_Kd") )	{
 				token = strtok(NULL, WHITESPACE);
 				strcpy(mat->map_Kd, token);
-#ifdef OBJDEBUG
+#ifdef OBJMATDEBUG
 				cout << "Loading texture: " << mat->map_Kd << endl;
 #endif
-				tm->loadBitmap(mat->map_Kd);
+				getMaterialManager()->loadBitmap(mat->map_Kd);
 			}
 		}
 	}

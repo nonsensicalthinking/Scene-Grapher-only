@@ -17,12 +17,7 @@ Font::Font(float width, float height)	{
 
 	textures = getMaterialManager();
 
-	char path[1024];
-	size_t size;
-	getcwd(path,size);
-
-	fontPath.append(path);
-	fontPath.append("/images/font.bmp");
+	fontPath = "font.bmp";
 
 	loadFont();
 }
