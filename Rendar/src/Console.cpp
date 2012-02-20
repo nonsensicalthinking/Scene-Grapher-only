@@ -12,6 +12,7 @@
 #include "shared.h"
 using namespace std;
 
+extern void shutdown();
 extern void Con_print(const char* fmt, ...);
 
 Console::Console(int width, int height) {
@@ -23,6 +24,7 @@ Console::Console(int width, int height) {
 	screenWidth = width;
 	screenHeight = height;
 	minusIndex = 1;
+	cmdHistoryIndex = 0;
 	output->push_back("");	// FIXME: need 1 bogus entry in the console
 
 	for(int x=0; x < MAX_CONSOLE_COMMANDS; x++)	{
@@ -47,6 +49,46 @@ void Console::scrollDown()	{
 void Console::scrollUp()	{
 	if( minusIndex < output->size() )
 		minusIndex++;
+}
+
+void Console::previousCommand()	{
+
+	if( cmdHistoryIndex < 0 )
+		cmdHistoryIndex = 0;
+	else if( cmdHistoryIndex > input->size()-1 )
+		cmdHistoryIndex = input->size()-1;
+
+	cout << "CMDHISTORYINDEX++: " << cmdHistoryIndex << endl;
+
+	list<string>::iterator cmdHistoryItr;
+
+	cmdHistoryItr = input->begin();
+	for(int x=0; x < cmdHistoryIndex; x++)	{
+		cmdHistoryItr++;
+	}
+
+	inputString = (*cmdHistoryItr);
+	cmdHistoryIndex++;
+}
+
+void Console::nextCommand()	{
+
+	if( cmdHistoryIndex < 0 )
+		cmdHistoryIndex = 0;
+	else if( cmdHistoryIndex > input->size()-1 )
+		cmdHistoryIndex = input->size()-1;
+
+	cout << "CMDHISTORYINDEX--: " << cmdHistoryIndex << endl;
+
+	list<string>::iterator cmdHistoryItr;
+
+	cmdHistoryItr = input->begin();
+	for(int x=0; x < cmdHistoryIndex; x++)	{
+		cmdHistoryItr++;
+	}
+
+	inputString = (*cmdHistoryItr);
+	cmdHistoryIndex--;
 }
 
 void Console::appendToInput(unsigned char s)	{
@@ -139,9 +181,6 @@ void Console::con_print(string s)	{
 }
 
 
-extern void shutdown();
-
-
 void Console::processConsoleCommand(const string conInput)	{
 	// Don't proceed without real input
 	if( conInput[0] == '\n' || conInput[0] == '\r' )
@@ -151,19 +190,13 @@ void Console::processConsoleCommand(const string conInput)	{
 
 	// Save command to history.
 	// and save to console output
+	cmdHistoryIndex = 0;
 	this->input->push_front(input);
 	this->output->push_back(">" + input);
 
-	string strin = input;
-	string_tolower(strin);
-	char line[MAX_CONSOLE_LINE_LEN];
-	strcpy(line, strin.c_str());
-	char *token = strtok(line, WHITESPACE);
-	string cmd = token;
-
+	// Process command
+	string cmd = input.substr(0, input.find_first_of(" "));
 	string content = input.substr(input.find_first_of(" ")+1);
-
-	cout << "CMD: " << cmd << " args: " << content << endl;
 
 	int hash = generateHash(cmd);
 	if( registeredCommands[hash].func != NULL || registeredCommands[hash].func1 != NULL )	{

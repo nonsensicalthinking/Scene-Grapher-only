@@ -36,6 +36,7 @@ public:
 	string inputString;
 	ostringstream* instr;
 	list<string> *input;
+	int cmdHistoryIndex;
 	list<string> *output;
 	int minusIndex;
 	Font* font;
@@ -48,6 +49,8 @@ public:
 
 	void scrollDown();
 	void scrollUp();
+	void previousCommand();
+	void nextCommand();
 	void appendToInput(unsigned char s);
 	void removeLastCharacter();
 	void clearInput();
