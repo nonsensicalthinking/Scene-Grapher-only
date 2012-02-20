@@ -163,6 +163,8 @@ void Console::processConsoleCommand(const string conInput)	{
 
 	string content = input.substr(input.find_first_of(" ")+1);
 
+	cout << "CMD: " << cmd << " args: " << content << endl;
+
 	int hash = generateHash(cmd);
 	if( registeredCommands[hash].func != NULL || registeredCommands[hash].func1 != NULL )	{
 

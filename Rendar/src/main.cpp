@@ -125,8 +125,7 @@ void printCvar(string args)	{
 void setCvar(string args)	{
 	char parse[512];
 	strncpy(parse, args.c_str(), 512);
-	char* cmd = strtok(parse, " \t\n\r");
-	char* cvar = strtok(NULL, " \t\n\r");
+	char* cvar = strtok(parse, " \t\n\r");
 	char* value = strtok(NULL, " \t\n\r");
 	string s = cvar;
 	string_tolower(s);

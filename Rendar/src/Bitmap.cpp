@@ -11,6 +11,8 @@
 #include "Bitmap.h"
 #include <unistd.h>
 
+extern void Con_print(const char* fmt, ...);
+
 //basic constructor
 Bitmap::Bitmap(){
     reset();
@@ -68,6 +70,8 @@ bool Bitmap::loadBMP(string file) {
     if(bmfh.bfType!=BITMAP_MAGIC_NUMBER) {
         error="File is not in DIB format";
         fclose(in);
+        Con_print("Bitmap: File is not in DIB format - %s", file.c_str());
+
         return false;
     }
 
@@ -124,6 +128,7 @@ bool Bitmap::loadBMP(string file) {
     if(tempData==NULL) {
         error="Not enough memory to allocate a temporary buffer";
         fclose(in);
+        Con_print("Bitmap: Not enough memory to allocate a temp buffer.");
         return false;
     }
 
@@ -178,6 +183,7 @@ bool Bitmap::convert24(char* tempData) {
     if(data==NULL) {
         error="Not enough memory to allocate an image buffer";
         delete[] data;
+        Con_print("Bitmap: Convert24 - Not enough memory to allocate an image buffer.");
         return false;
     }
 
@@ -232,6 +238,7 @@ bool Bitmap::convert8(char* tempData) {
     if(data==NULL) {
         error="Not enough memory to allocate an image buffer";
         delete[] data;
+        Con_print("Bitmap: Convert8 - Not enough memory to allocate an image buffer.");
         return false;
     }
 

@@ -10,6 +10,9 @@
 
 extern void Con_print(const char* fmt, ...);
 
+extern string* getCvarAddress_S(string s);
+
+
 MaterialManager::MaterialManager()	{
 
 }
@@ -80,12 +83,16 @@ void MaterialManager::disableMaterial(string matName)	{
 bool MaterialManager::loadBitmap(string str)	{
 	Bitmap* bmp = new Bitmap();
 
-	if( !bmp->loadBMP(str) )	{
-		Con_print("Couldn't load bitmap (%s): %s", str.c_str(), bmp->error.c_str());
+	string* imagePath = getCvarAddress_S("r_imagePath");
+
+	string canonicalPath = *imagePath + str;
+
+	if( !bmp->loadBMP(canonicalPath) )	{
+		Con_print("Couldn't load bitmap (%s): %s", canonicalPath.c_str(), bmp->error.c_str());
 		return false;
 	}
 	else	{
-		Con_print("BITMAP LOADED: %s", str.c_str());
+		Con_print("BITMAP LOADED: %s", canonicalPath.c_str());
 	}
 
 	GLuint tid;
@@ -114,6 +121,15 @@ void MaterialManager::unloadTexture(string path)	{
 }
 
 void MaterialManager::unloadAllTextures()	{
+
+	map<string,material_t*>::iterator itr;
+
+	for(itr=materials.begin(); itr!=materials.end(); itr++)	{
+		cout << "Deleting material: " << (*itr).first << endl;
+		material_t* mat = (*itr).second;
+		delete mat;
+	}
+
 	textures.clear();
 }
 
