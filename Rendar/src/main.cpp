@@ -35,6 +35,8 @@ Console* con;
 
 cvar_t configVars[MAX_CVARS];
 
+
+
 string programPath;
 
 string getProgramPath()	{
