@@ -197,10 +197,39 @@ void processMouse(int button, int state, int x, int y)	{
 	// TODO forward to game
 }
 
+
+void tempCamControl(unsigned char key, int x, int y)	{
+	switch(key)	{
+	case 'a':
+		rendarar->getCamera()->moveCameraLeft(1);
+		break;
+	case 's':
+		rendarar->getCamera()->moveCameraBack(1);
+		break;
+	case 'd':
+		rendarar->getCamera()->moveCameraRight(1);
+		break;
+	case 'w':
+		rendarar->getCamera()->moveCameraForward(1);
+		break;
+	case 'q':
+		rendarar->getCamera()->moveCameraUp(1);
+		break;
+	case 'e':
+		rendarar->getCamera()->moveCameraDown(1);
+		break;
+	}
+}
+
+
+
 void processNormalKeys(unsigned char key, int x, int y)	{
 
 	if( con->consoleActive )	{	// send key input to console
 		switch(key)	{
+			case CONSOLE_KEY:
+				con->consoleActive = !con->consoleActive;
+				break;
 			case ESC_KEY:
 				con->clearInput();
 				break;
@@ -210,6 +239,12 @@ void processNormalKeys(unsigned char key, int x, int y)	{
 		}
 	}
 	else	{	// Don't send key input to console
+
+		if( key == CONSOLE_KEY )
+			con->consoleActive = !con->consoleActive;
+
+		tempCamControl(key, x, y);
+
 		// TODO forward to game
 //		keyPressed(key, x, y);
 	}
@@ -341,7 +376,7 @@ int main(int argc, char** argv) {
 	glutSpecialFunc(processSpecialKeys);
 	glutPassiveMotionFunc(passiveMouseMove);
 
-	con = new Console(800,600);
+	con = new Console(1024,768);
 	registerCommand("quit", shutdown);
 	registerCommand("echo", echo, true);
 	registerCommand("s", setCvar, true);

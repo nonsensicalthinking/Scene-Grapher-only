@@ -188,8 +188,10 @@ void ObjModel::processOBJLine(char line[MAX_OBJ_LINE_LEN])	{
 		// "on" or "off" it appears.
 	}
 	else if( !strcmp(token, "usemtl") )	{
+
 		token = strtok(NULL, WHITESPACE);
 		strcpy(curMat, token);
+
 	}
 	else if( !strcmp( token, "mtllib") )	{
 		token = strtok(NULL, WHITESPACE);

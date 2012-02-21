@@ -24,6 +24,8 @@ extern void registerCommand(string name, void (*func)(string), bool hasArgs);
 extern string getProgramPath();
 
 Rendar::Rendar(string windowTitle) {
+	cachedPolygonCount = 0;
+
 	// register cvars
 	registerCvar("r_wireframepolys", "0", INT_CVAR);
 
@@ -98,12 +100,12 @@ void Rendar::run(void)	{
 
 void Rendar::lighting()	{
 	GLfloat df = 1.0;
-	GLfloat amb[]=	{0.5, 0.5, 0.5, 1};   		//global ambient
+	GLfloat amb[]=	{0.9, 0.9, 0.9, 1};   		//global ambient
 
 	GLfloat amb2[]=	{1, 1, 1, 1};  		//ambiance of light source
 	GLfloat diff[]=	{1.0, 1.0, 1.0, 1.0};	// diffuse light
 	GLfloat spec[]=	{1.0, 1.0, 1.0, 1.0};      	//sets specular highlight
-	GLfloat posl[]=	{-21, 75, 18, 1};            //position of light source
+	GLfloat posl[]=	{0, 0, 0, 1};            //position of light source
 
 //	GLfloat posL1[] = {0, 5, 0};
 //	GLfloat spotDir[] = {0, -1, 0};
@@ -153,7 +155,6 @@ void Rendar::draw(void)	{
 	lighting();
 
 	glTranslated(0, 0, 10);
-	glColor3f(0.0, 0.0, 0.0);
 
 	renderBSPTree(bspRoot);
 
@@ -360,5 +361,7 @@ int Rendar::getCachedPolygonCount()	{
 	return cachedPolygonCount;
 }
 
-
+Camera* Rendar::getCamera()	{
+	return cam;
+}
 

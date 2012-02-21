@@ -65,6 +65,7 @@ public:
 	void unCachePolygons(bsp_node_t* bspNode);
 	void LoadModel(string path);
 	int getCachedPolygonCount();
+	Camera* getCamera();
 };
 
 #endif /* RENDAR_H_ */
