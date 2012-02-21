@@ -42,6 +42,8 @@ bool ObjModel::loadObjFile(string s)	{
 		processOBJLine(in);
 	}
 
+	fclose(fp);
+
 	return true;
 }
 
@@ -352,6 +354,8 @@ bool ObjModel::loadMTLFile(const char* fileName)	{
 			}
 		}
 	}
+
+	fclose(fp);
 
 	return true;
 }
