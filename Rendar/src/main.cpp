@@ -17,6 +17,9 @@
 #include <stdarg.h>
 #include <GL/glext.h>
 
+#define MOUSELOOK
+
+
 #ifdef _WIN32
 #include <direct.h>
 #endif
@@ -283,9 +286,21 @@ void processSpecialKeys(int key, int x, int y) {
 	}
 }
 
+#ifdef MOUSELOOK
 void passiveMouseMove(int x, int y)	{
-	// TODO forward to game
+	float dx = 400-x;
+	float dy = 300-y;
+
+	if( dx == 0 && dy == 0 )
+		return;
+
+	dx *= 0.00025;
+	dy *= 0.00025;
+
+	rendarar->getCamera()->rotateAboutX(dy);	// Pitch
+	rendarar->getCamera()->rotateAboutY(-dx);	// Yaw
 }
+#endif
 
 void changeSize(int w, int h)	{
 	if( rendarar )
