@@ -11,6 +11,8 @@
 #include "shared.h"
 #include "WavefrontObj.h"
 
+#define MOUSELOOK
+
 using namespace std;
 
 extern void drawConsole();
@@ -86,7 +88,12 @@ void Rendar::gl_Init()	{
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 	glEnable(GL_CULL_FACE);
-	glutSetCursor(GLUT_CURSOR_NONE);	// hide the mouse cursor
+
+#ifdef MOUSELOOK
+	glutSetCursor(GLUT_CURSOR_NONE);
+#endif
+
+
 
 	//load basic textures for fonts and console
 
@@ -105,7 +112,7 @@ void Rendar::lighting()	{
 	GLfloat amb2[]=	{1, 1, 1, 1};  		//ambiance of light source
 	GLfloat diff[]=	{1.0, 1.0, 1.0, 1.0};	// diffuse light
 	GLfloat spec[]=	{1.0, 1.0, 1.0, 1.0};      	//sets specular highlight
-	GLfloat posl[]=	{0, 0, 0, 1};            //position of light source
+	GLfloat posl[]=	{0, 20, 0, 1};            //position of light source
 
 //	GLfloat posL1[] = {0, 5, 0};
 //	GLfloat spotDir[] = {0, -1, 0};
@@ -150,11 +157,13 @@ void Rendar::draw(void)	{
 				cam->dir[0], 	cam->dir[1], 	cam->dir[2],		// eye looking @ this vertex
 				cam->up[0], 	cam->up[1], 	cam->up[2]);		// up direction
 
-//	glutWarpPointer(400, 300);	// center mouse
+#ifdef MOUSELOOK
+	glutWarpPointer(400, 300);	// center mouse
+#endif
 
 	lighting();
 
-	glTranslated(0, 0, 10);
+//	glTranslated(0, 0, 10);
 
 	renderBSPTree(bspRoot);
 
