@@ -49,23 +49,6 @@ const vec3_t NORMAL_Z = {0.0, 0.0, 1.0};
 const vec3_t ZERO_VECTOR = {0.0, 0.0, 0.0};
 
 
-
-#define UNUSED_CVAR	0
-#define INT_CVAR	1
-#define DOUBLE_CVAR	2
-#define STRING_CVAR	4
-
-typedef struct configVariable_s	{
-	string name;
-	int typeFlag;
-
-	string s;
-	int i;
-	double d;
-}cvar_t;
-
-
-
 typedef struct plane_s	{
 	float diameter;
 	vec3_t origin;

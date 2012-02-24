@@ -29,7 +29,7 @@ Rendar::Rendar(string windowTitle) {
 	cachedPolygonCount = 0;
 
 	// register cvars
-	registerCvar("r_wireframepolys", "0", INT_CVAR);
+	registerCvar("r_wireframepolys", "0", 1);
 
 	// get addresses for newly registered cvars
 	r_wireFramePolys = getCvarAddress_I("r_wireframepolys");
