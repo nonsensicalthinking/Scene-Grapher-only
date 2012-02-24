@@ -16,7 +16,6 @@
 #define CONSOLE_H_
 
 #define MAX_CONSOLE_LINE_LEN	128
-#define MAX_CONSOLE_COMMANDS	1024
 
 using namespace std;
 
@@ -31,9 +30,6 @@ typedef struct consoleCommand_t	{
 
 class Console {
 public:
-
-//	cmd_t registeredCommands[MAX_CONSOLE_COMMANDS];
-
 	map<string, cmd_t*> registeredCommands;
 
 	bool consoleActive;
@@ -49,7 +45,9 @@ public:
 	int screenHeight;
 
 	Console(int width, int height);
+
 	virtual ~Console();
+	void freeRegisteredCommands();
 
 	void scrollDown();
 	void scrollUp();
@@ -63,7 +61,8 @@ public:
 	void con_print(string s);
 	void registerCommand(string name, void (*func)());
 	void registerCommand(string name, void (*func)(string), bool hasArgs);
-
+	map<string,cmd_t*>::iterator cmdUpperBound(string str);
+	void autoComplete();
 };
 
 #endif /* CONSOLE_H_ */

@@ -9,13 +9,15 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
+#include <stdarg.h>
 #include "Rendar.h"
 #include "Console.h"
 #include "keys.h"
 #include "shared.h"
 #include "strtools.h"
-#include <stdarg.h>
+#include "CvarRegister.h"
 #include <GL/glext.h>
+
 
 #define MOUSELOOK
 
@@ -27,18 +29,11 @@
 #include <unistd.h>
 #endif
 
-#define MAX_CVARS 1024
-
 using namespace std;
-
-
 
 Rendar* rendarar;
 Console* con;
-
-cvar_t configVars[MAX_CVARS];
-
-
+CvarRegister* cvarReg;
 
 string programPath;
 
@@ -70,11 +65,14 @@ void Con_print( const char* fmt, ... )
 	string line = str;
 	if( con )
 		con->con_print(line);
+	else
+		printf("%s", line.c_str());
 }
 
 void shutdown()	{
 	delete rendarar;
 	delete con;
+	delete cvarReg;
 }
 
 MaterialManager* getMaterialManager()	{
@@ -82,110 +80,39 @@ MaterialManager* getMaterialManager()	{
 }
 
 int* getCvarAddress_I(string name)	{
-	int hash = generateHash(name);
-	return &(configVars[hash].i);
+	return cvarReg->getCvarAddress_I(name);
 }
 
 double* getCvarAddress_D(string name)	{
-	int hash = generateHash(name);
-	return &(configVars[hash].d);
+	return cvarReg->getCvarAddress_D(name);
 }
 
 string* getCvarAddress_S(string name)	{
-	int hash = generateHash(name);
-	return &(configVars[hash].s);
+	return cvarReg->getCvarAddress_S(name);
 }
 
-
 void printCvar(string args)	{
-	char parse[512];
-	strncpy(parse, args.c_str(), 512);
-	char* cvar = strtok(parse," \t\n\r");
-	string s = cvar;
-	string_tolower(s);
-
-
-	int hash = generateHash(s);
-
-	if( configVars[hash].typeFlag != 0 )	{
-		switch(configVars[hash].typeFlag)	{
-		case INT_CVAR:
-			Con_print("%s = %d", configVars[hash].name.c_str(), configVars[hash].i);
-			break;
-		case DOUBLE_CVAR:
-			Con_print("%s = %f", configVars[hash].name.c_str(), configVars[hash].d);
-			break;
-		case STRING_CVAR:
-			Con_print("%s = %s", configVars[hash].name.c_str(), configVars[hash].s.c_str());
-			break;
-		}
-
-	}
-	else	{
-		Con_print("%s, No such cvar registered.", s.c_str());
-	}
-
-
+	cvarReg->setCvar(args);
 }
 
 void setCvar(string args)	{
-	char parse[512];
-	strncpy(parse, args.c_str(), 512);
-	char* cvar = strtok(parse, " \t\n\r");
-	char* value = strtok(NULL, " \t\n\r");
-	string s = cvar;
-	string_tolower(s);
-
-
-	int hash = generateHash(s);
-
-	if( configVars[hash].typeFlag != 0 )	{
-		switch(configVars[hash].typeFlag)	{
-		case INT_CVAR:
-			configVars[hash].i = atoi(value);
-			Con_print("%s = %d", configVars[hash].name.c_str(), configVars[hash].i);
-			break;
-		case DOUBLE_CVAR:
-			configVars[hash].d = atof(value);
-			Con_print("%s = %f", configVars[hash].name.c_str(), configVars[hash].d);
-			break;
-		case STRING_CVAR:
-			configVars[hash].s = value;
-			Con_print("%s = %s", configVars[hash].name.c_str(), configVars[hash].s.c_str());
-			break;
-		}
-	}
-	else	{
-		Con_print("%s, No such cvar registered.", s.c_str());
-	}
+	cvarReg->setCvar(args);
 }
 
-void initCvars()	{
-	for(int x=0; x < MAX_CVARS; x++)
-		configVars[x].typeFlag = UNUSED_CVAR;
+bool cvarRegistered(string name)	{
+	return cvarReg->cvarRegistered(name);
+}
+
+map<string,cvar_t*>::iterator cvarLowerBound(string str)	{
+	return cvarReg->lower_bound(str);
+}
+
+map<string,cvar_t*>::iterator cvarUpperBound(string str)	{
+	return cvarReg->upper_bound(str);
 }
 
 void registerCvar(string name, string value, int typeFlag)	{
-	int hash = generateHash(name);
-
-	Con_print("CVAR REGISTERED: [%s] Len: [%d] Hash: [%d]", name.c_str(), name.length(), hash);
-
-	configVars[hash].name = name;
-	configVars[hash].typeFlag = typeFlag;
-
-	switch(typeFlag)	{
-	case INT_CVAR:
-		configVars[hash].i = atoi(value.c_str());
-		break;
-	case DOUBLE_CVAR:
-		configVars[hash].d = atof(value.c_str());
-		break;
-	case STRING_CVAR:
-		configVars[hash].s = value;
-		break;
-	}
-
-
+	cvarReg->registerCvar(name, value, typeFlag);
 }
 
 void registerCommand(string name, void (*func)())	{
@@ -235,6 +162,9 @@ void processNormalKeys(unsigned char key, int x, int y)	{
 				break;
 			case ESC_KEY:
 				con->clearInput();
+				break;
+			case 9:
+				con->autoComplete();
 				break;
 			default:	// add to input line
 				con->appendToInput(key);
@@ -368,16 +298,17 @@ int main(int argc, char** argv) {
 
 	programPath = getCWD();
 
-	initCvars();
-	registerCvar("name", 			"defaultPlayer", 	STRING_CVAR);
-	registerCvar("scr_width", 		"800", 				INT_CVAR);
-	registerCvar("src_height", 		"600", 				INT_CVAR);
-	registerCvar("src_full", 		"0", 				INT_CVAR);
-	registerCvar("scr_fov",			"45",				INT_CVAR);
-	registerCvar("g_gravity", 		"9.8", 				DOUBLE_CVAR);
-	registerCvar("cwd",				getCWD(),			STRING_CVAR);
-	registerCvar("r_modelPath",		getCWD()+"/models/",STRING_CVAR);
-	registerCvar("r_imagePath", 	getCWD()+"/images/",STRING_CVAR);
+	cvarReg = new CvarRegister();
+	registerCvar("name", 			"defaultPlayer", 		STRING_CVAR);
+	registerCvar("scr_width", 		"800", 					INT_CVAR);
+	registerCvar("scr_height", 		"600", 					INT_CVAR);
+	registerCvar("scr_full", 		"0", 					INT_CVAR);
+	registerCvar("scr_fov",			"45",					INT_CVAR);
+	registerCvar("g_gravity", 		"9.8", 					DOUBLE_CVAR);
+	registerCvar("cwd",				getCWD(),				STRING_CVAR);
+	registerCvar("r_modelPath",		getCWD()+"/models/",	STRING_CVAR);
+	registerCvar("r_imagePath", 	getCWD()+"/images/",	STRING_CVAR);
+
 
 	glutInit(&argc, argv);
 
@@ -392,6 +323,7 @@ int main(int argc, char** argv) {
 	glutPassiveMotionFunc(passiveMouseMove);
 
 	con = new Console(1024,768);
+
 	registerCommand("quit", shutdown);
 	registerCommand("echo", echo, true);
 	registerCommand("s", setCvar, true);
@@ -402,8 +334,8 @@ int main(int argc, char** argv) {
 	registerCommand("gl_loadmap", LoadMap, true);
 	registerCommand("gl_polycount", polygonCount);
 
-
 	rendarar->run();
+
 
 
 	cout << "!@#$%^&*Unreachable code" << endl;

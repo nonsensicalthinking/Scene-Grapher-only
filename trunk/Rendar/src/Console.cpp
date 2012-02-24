@@ -9,11 +9,17 @@
 #include "keys.h"
 #include <iostream>
 #include <list>
-#include "shared.h"
+//#include "shared.h"
+#include "CvarRegister.h"
+
 using namespace std;
 
 extern void shutdown();
 extern void Con_print(const char* fmt, ...);
+extern bool cvarRegistered(string name);
+extern void setCvar(string args);
+extern map<string,cvar_t*>::iterator cvarLowerBound(string str);
+extern map<string,cvar_t*>::iterator cvarUpperBound(string str);
 
 Console::Console(int width, int height) {
 	consoleActive = false;
@@ -30,16 +36,20 @@ Console::Console(int width, int height) {
 
 Console::~Console() {
 
-	map<string, cmd_t*>::iterator itr;
-	for(itr=registeredCommands.begin();itr!=registeredCommands.end();itr++)	{
-		cmd_t* cmd = (*itr).second;
-		delete cmd;
-	}
+	freeRegisteredCommands();
 
 	delete input;
 	delete instr;
 	delete output;
 	delete font;
+}
+
+void Console::freeRegisteredCommands()	{
+	map<string, cmd_t*>::iterator itr;
+	for(itr=registeredCommands.begin();itr!=registeredCommands.end();itr++)	{
+		cmd_t* cmd = (*itr).second;
+		delete cmd;
+	}
 }
 
 void Console::scrollDown()	{
@@ -213,9 +223,16 @@ void Console::processConsoleCommand(const string conInput)	{
 		}
 
 	}
-	else
-		Con_print("Command not found: %s", cmd.c_str());
-
+	else	{
+		if( cvarRegistered(cmd) )	{
+			if( input.find_first_of(" ") == string::npos )
+				setCvar(cmd);
+			else
+				setCvar(cmd+" "+content);
+		}
+		else
+			Con_print("Command/Cvar not found: %s", cmd.c_str());
+	}
 }
 
 
@@ -229,7 +246,7 @@ void Console::registerCommand(string name, void (*func)())	{
 		registeredCommands[cmd->name] = cmd;
 	}
 	else	{
-		Con_print("Hash Conflict: %s has identical hash to %s", name.c_str(), name.c_str());
+		Con_print("RegisterCommand: Naming Conflict - %s has identical name to %s", name.c_str(), name.c_str());
 	}
 }
 
@@ -243,14 +260,50 @@ void Console::registerCommand(string name, void (*func)(string), bool hasArgs)	{
 		registeredCommands[cmd->name] = cmd;
 	}
 	else	{
-		Con_print("Hash Conflict: %s has identical hash to %s", name.c_str(), name.c_str());
+		Con_print("RegisterCommand: Naming Conflict - %s has identical name to %s", name.c_str(), name.c_str());
+	}
+}
+
+map<string,cmd_t*>::iterator Console::cmdUpperBound(string str)	{
+	map<string,cmd_t*>::iterator itr;
+	itr = registeredCommands.lower_bound(str);
+
+	for(;itr!=registeredCommands.end(); itr++)	{
+		cmd_t* cmd = (*itr).second;
+
+		int found = cmd->name.find(str);
+
+		if( found != 0 )
+			return itr;
 	}
 }
 
 
+void Console::autoComplete()	{
+	string_tolower(inputString);
 
+// TODO Check for exact matches first, if no exact maches, check how many there are total, if there is only 1...auto-compelte!
 
+	map<string, cmd_t*>::iterator cmdItr;
+	map<string, cmd_t*>::iterator cmdUB;
+	cmdItr = registeredCommands.lower_bound(inputString);
+	cmdUB = cmdUpperBound(inputString);// registeredCommands.upper_bound(inputString);
 
+	for(; cmdItr != cmdUB; cmdItr++)	{
+		cmd_t* c1 = (*cmdItr).second;
+		Con_print("%s", c1->name.c_str());
+	}
+
+	map<string, cvar_t*>::iterator cvarItr;
+	map<string, cvar_t*>::iterator cvarUB;
+	cvarItr = cvarLowerBound(inputString);
+	cvarUB = cvarUpperBound(inputString);
+
+	for(; cvarItr != cvarUB; cvarItr++)	{
+		cvar_t* c2 = (*cvarItr).second;
+		Con_print("%s", c2->name.c_str());
+	}
+}
 
 
 
