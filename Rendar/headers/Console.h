@@ -53,6 +53,7 @@ public:
 	void scrollUp();
 	void previousCommand();
 	void nextCommand();
+	void setInput(string s);
 	void appendToInput(unsigned char s);
 	void removeLastCharacter();
 	void clearInput();

@@ -78,7 +78,7 @@ void Console::previousCommand()	{
 		cmdHistoryItr++;
 	}
 
-	inputString = (*cmdHistoryItr);
+	setInput((*cmdHistoryItr));
 	cmdHistoryIndex++;
 }
 
@@ -98,8 +98,14 @@ void Console::nextCommand()	{
 		cmdHistoryItr++;
 	}
 
-	inputString = (*cmdHistoryItr);
+	setInput((*cmdHistoryItr));
 	cmdHistoryIndex--;
+}
+
+void Console::setInput(string s)	{
+	clearInput();
+	(*instr) << s;
+	inputString = s;
 }
 
 void Console::appendToInput(unsigned char s)	{
@@ -130,7 +136,7 @@ void Console::removeLastCharacter()	{
 }
 
 void Console::clearInput()	{
-//	delete instr;
+	delete instr;
 	instr = new ostringstream;
 	inputString = "";
 }
@@ -286,12 +292,14 @@ void Console::autoComplete()	{
 
 	map<string, cmd_t*>::iterator cmdItr;
 	map<string, cmd_t*>::iterator cmdUB;
+	list<string> foundList;
+
 	cmdItr = registeredCommands.lower_bound(inputString);
 	cmdUB = cmdUpperBound(inputString);// registeredCommands.upper_bound(inputString);
 
 	for(; cmdItr != cmdUB; cmdItr++)	{
 		cmd_t* c1 = (*cmdItr).second;
-		Con_print("%s", c1->name.c_str());
+		foundList.push_back(c1->name);
 	}
 
 	map<string, cvar_t*>::iterator cvarItr;
@@ -301,8 +309,22 @@ void Console::autoComplete()	{
 
 	for(; cvarItr != cvarUB; cvarItr++)	{
 		cvar_t* c2 = (*cvarItr).second;
-		Con_print("%s", c2->name.c_str());
+		foundList.push_back(c2->name);
 	}
+
+
+	if( foundList.size() == 1 )	{
+		string foundCmd = foundList.front();
+		setInput(foundCmd);
+	}
+
+
+	list<string>::iterator foundItr;
+	for(foundItr=foundList.begin(); foundItr != foundList.end(); foundItr++)	{
+		string s = (*foundItr);
+		Con_print("%s", s.c_str());
+	}
+
 }
 
 
