@@ -36,7 +36,7 @@ Rendar::Rendar(string windowTitle) {
 	scr_width = getCvarAddress_I("scr_width");
 	scr_height = getCvarAddress_I("scr_height");
 	scr_full = getCvarAddress_I("scr_full");
-	scr_fov = getCvarAddress_I("src_fov");
+	scr_fov = getCvarAddress_I("scr_fov");
 	modelPath = getCvarAddress_S("r_modelPath");
 	imagePath = getCvarAddress_S("r_imagePath");
 
