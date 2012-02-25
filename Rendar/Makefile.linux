@@ -1,5 +1,5 @@
-CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
-
+CXXFLAGS =	-g
+#-O2  -Wall -fmessage-length=0
 OBJS =	src/*.cpp
 INCS = -I"/usr/include/GL" -I"./headers/"
 LIBS = 	-lGL -lGLU -lglut
@@ -7,7 +7,7 @@ LIBS = 	-lGL -lGLU -lglut
 TARGET = rendarar
 
 $(TARGET):	$(OBJS)
-	$(CXX) -o $(TARGET) $(OBJS) $(LIBS) $(INCS)
+	$(CXX) -o $(TARGET) $(OBJS) $(LIBS) $(INCS) $(CXXFLAGS)
 
 all:	$(TARGET)
 
