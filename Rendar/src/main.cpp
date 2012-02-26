@@ -16,8 +16,9 @@
 #include "shared.h"
 #include "strtools.h"
 #include "CvarRegister.h"
+#include "Game.h"
 #include <GL/glext.h>
-
+#include <dlfcn.h>
 
 #define MOUSELOOK
 
@@ -34,6 +35,7 @@ using namespace std;
 Rendar* rendarar;
 Console* con;
 CvarRegister* cvarReg;
+Game* g;
 
 string programPath;
 
@@ -245,8 +247,8 @@ void draw(void)	{
 
 void vid_restart()	{
 
-	int* width = getCvarAddress_I("scr_width");
-	int* height = getCvarAddress_I("scr_height");
+	int* width = getCvarAddress_I("r_width");
+	int* height = getCvarAddress_I("r_height");
 
 	changeSize(*width, *height);
 
@@ -294,18 +296,86 @@ void polygonCount()	{
 		Con_print("Cached polygons in scene: %d", rendarar->getCachedPolygonCount());
 }
 
+
+#ifdef linux
+void* gameLibHandle;
+typedef Game* create_t();
+typedef void destroy_t(Game*);
+
+void loadGameLib()	{
+	gameLibHandle = dlopen("./libmygame.so", RTLD_LAZY);
+
+	if( gameLibHandle == NULL )	{
+		cerr << endl << "LoadGame: NULL " << dlerror() << endl;
+		return;
+	}
+
+
+	create_t* GetGame = (create_t*) dlsym(gameLibHandle,"maker");
+
+	g = GetGame();
+}
+
+void unloadGameLib()	{
+
+	if( gameLibHandle == NULL )	{
+		cerr << "Unload Game: NULL gameLibHandle" << endl;
+		return;
+	}
+
+	destroy_t* DeleteGame = (destroy_t*) dlsym(gameLibHandle,"destroyer");
+
+	DeleteGame(g);
+
+	dlclose(gameLibHandle);
+
+	cout << "GameLib closed." << endl;
+}
+
+#endif
+
+#ifdef _WIN32
+void loadGameDLL()	{
+
+}
+
+void unloadGameDLL()	{
+
+}
+#endif
+
+void loadGame()	{
+#ifdef linux
+	loadGameLib();
+#endif
+
+#ifdef _WIN32
+	loadGameDLL();
+#endif
+}
+
+void unloadGame()	{
+#ifdef linux
+	unloadGameLib();
+#endif
+
+#ifdef _WIN32
+	unloadGameDLL();
+#endif
+}
+
 int main(int argc, char** argv) {
 
 	programPath = getCWD();
 
 	cvarReg = new CvarRegister();
-	registerCvar("name", 			"defaultPlayer", 		STRING_CVAR);
-	registerCvar("scr_width", 		"800", 					INT_CVAR);
-	registerCvar("scr_height", 		"600", 					INT_CVAR);
-	registerCvar("scr_full", 		"0", 					INT_CVAR);
-	registerCvar("scr_fov",			"45",					INT_CVAR);
-	registerCvar("g_gravity", 		"9.8", 					DOUBLE_CVAR);
 	registerCvar("cwd",				getCWD(),				STRING_CVAR);
+	registerCvar("name", 			"defaultPlayer", 		STRING_CVAR);
+	registerCvar("r_width", 		"800", 					INT_CVAR);
+	registerCvar("r_height", 		"600", 					INT_CVAR);
+	registerCvar("r_full", 			"0", 					INT_CVAR);
+	registerCvar("r_fov",			"45",					INT_CVAR);
+	registerCvar("g_gravity", 		"9.8", 					DOUBLE_CVAR);
 	registerCvar("r_modelPath",		getCWD()+"/models/",	STRING_CVAR);
 	registerCvar("r_imagePath", 	getCWD()+"/images/",	STRING_CVAR);
 
@@ -326,13 +396,19 @@ int main(int argc, char** argv) {
 
 	registerCommand("quit", shutdown);
 	registerCommand("echo", echo, true);
-	registerCommand("s", setCvar, true);
-	registerCommand("p", printCvar, true);
 	registerCommand("vid_restart", vid_restart);
 	registerCommand("gl_info", printGLInfo);
 	registerCommand("gl_loadmodel", LoadModel, true);
 	registerCommand("gl_loadmap", LoadMap, true);
 	registerCommand("gl_polycount", polygonCount);
+
+
+	loadGame();
+
+	g->newPacket();
+	Con_print("Game Loaded: %s", g->getName().c_str());
+
+	unloadGame();
 
 	rendarar->run();
 

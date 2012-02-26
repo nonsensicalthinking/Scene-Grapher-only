@@ -30,10 +30,10 @@ class Rendar {
 
 private:
 	int winPtr;	// glut window id
-	int* scr_width;
-	int* scr_height;
-	int* scr_full;
-	int* scr_fov;
+	int* r_width;
+	int* r_height;
+	int* r_full;
+	int* r_fov;
 	int* r_wireFramePolys;
 	Camera* cam;	// camera
 
