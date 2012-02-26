@@ -32,18 +32,18 @@ Rendar::Rendar(string windowTitle) {
 	registerCvar("r_wireframepolys", "0", 1);
 
 	// get addresses for newly registered cvars
-	r_wireFramePolys = getCvarAddress_I("r_wireframepolys");
-	scr_width = getCvarAddress_I("scr_width");
-	scr_height = getCvarAddress_I("scr_height");
-	scr_full = getCvarAddress_I("scr_full");
-	scr_fov = getCvarAddress_I("scr_fov");
+	r_wireFramePolys = getCvarAddress_I("r_wireframePolys");
+	r_width = getCvarAddress_I("r_width");
+	r_height = getCvarAddress_I("r_height");
+	r_full = getCvarAddress_I("r_full");
+	r_fov = getCvarAddress_I("r_fov");
 	modelPath = getCvarAddress_S("r_modelPath");
 	imagePath = getCvarAddress_S("r_imagePath");
 
 
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0,0);
-	glutInitWindowSize(*scr_width, *scr_height);
+	glutInitWindowSize(*r_width, *r_height);
 
 	matsMgr = new MaterialManager();
 	modelMgr = new ModelManager();
@@ -176,8 +176,8 @@ void Rendar::draw(void)	{
 
 
 void Rendar::changeSize(int width, int height)	{
-	*scr_width = width;
-	*scr_height = height;
+	*r_width = width;
+	*r_height = height;
 
 	double asratio;
 
@@ -190,7 +190,7 @@ void Rendar::changeSize(int width, int height)	{
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(*scr_fov, asratio, Z_NEAR, Z_FAR); //adjust perspective
+    gluPerspective(*r_fov, asratio, Z_NEAR, Z_FAR); //adjust perspective
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
