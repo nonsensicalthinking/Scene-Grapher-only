@@ -312,8 +312,8 @@ void* gameLibHandle;
 typedef Game* create_t();
 typedef void destroy_t(Game*);
 
-void loadGameLib()	{
-	gameLibHandle = dlopen("./libmygame.so", RTLD_LAZY);
+void loadGameLib(string soName)	{
+	gameLibHandle = dlopen(soName.c_str(), RTLD_LAZY);
 
 	if( gameLibHandle == NULL )	{
 		cerr << endl << "LoadGame: NULL " << dlerror() << endl;
@@ -350,9 +350,9 @@ typedef Game* create_t();
 
 HINSTANCE winDLLHandle;
 
-void loadGameDLL()	{
+void loadGameDLL(string dllName)	{
 	Con_print("Loading DLL...");
-	winDLLHandle = LoadLibrary("MyGame.dll");
+	winDLLHandle = LoadLibrary(dllName.c_str());
 
 	if( winDLLHandle != NULL )	{
 		create_t* getGame = (create_t*) GetProcAddress(winDLLHandle, "maker");
@@ -378,14 +378,19 @@ void unloadGameDLL()	{
 }
 #endif
 
-void loadGame()	{
+void loadGame(string gameLib)	{
 #ifdef linux
-	loadGameLib();
+	loadGameLib(gameLib);
 #endif
 
 #ifdef _WIN32
-	loadGameDLL();
+	loadGameDLL(gameLib);
 #endif
+
+	setGameCallBacks();
+	g->init();
+
+	g->newPacket();
 }
 
 void unloadGame()	{
@@ -396,6 +401,8 @@ void unloadGame()	{
 #ifdef _WIN32
 	unloadGameDLL();
 #endif
+
+	Con_print("Game Library Unloaded.");
 }
 
 
@@ -437,20 +444,17 @@ int main(int argc, char** argv) {
 
 	con = new Console(1024,768);
 
-	registerCommand("quit", shutdown);
+	registerCommand(		"quit", shutdown);
 	registerCommandWithArgs("echo", echo, true);
-	registerCommand("vid_restart", vid_restart);
-	registerCommand("gl_info", printGLInfo);
+	registerCommand(		"vid_restart", vid_restart);
+
+	registerCommand(		"gl_info", printGLInfo);
 	registerCommandWithArgs("gl_loadmodel", LoadModel, true);
 	registerCommandWithArgs("gl_loadmap", LoadMap, true);
-	registerCommand("gl_polycount", polygonCount);
+	registerCommand(		"gl_polycount", polygonCount);
 
-
-	loadGame();
-	setGameCallBacks();
-	g->init();
-
-	g->newPacket();
+	registerCommandWithArgs("game_load", loadGame, true);
+	registerCommand(		"game_unload", unloadGame);
 
 	rendarar->run();
 

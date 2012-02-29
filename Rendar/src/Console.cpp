@@ -317,13 +317,19 @@ void Console::autoComplete()	{
 		string foundCmd = foundList.front();
 		setInput(foundCmd);
 	}
-
-
-	list<string>::iterator foundItr;
-	for(foundItr=foundList.begin(); foundItr != foundList.end(); foundItr++)	{
-		string s = (*foundItr);
-		Con_print("%s", s.c_str());
+	else	{	// print the possibilities
+		if( foundList.size() > 0 )	{
+			list<string>::iterator foundItr;
+			for(foundItr=foundList.begin(); foundItr != foundList.end(); foundItr++)	{
+				string s = (*foundItr);
+				Con_print("%s", s.c_str());
+			}
+		}
+		else	{
+			Con_print("0 commands/cvars found.");
+		}
 	}
+
 
 }
 
