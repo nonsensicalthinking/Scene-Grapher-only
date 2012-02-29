@@ -9,7 +9,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
-#include <stdarg.h>
 #include "Rendar.h"
 #include "Console.h"
 #include "keys.h"
@@ -18,17 +17,19 @@
 #include "CvarRegister.h"
 #include "Game.h"
 #include <GL/glext.h>
-#include <dlfcn.h>
-
-#define MOUSELOOK
-
 
 #ifdef _WIN32
 #include <direct.h>
 #endif
 #ifdef linux
 #include <unistd.h>
+#include <dlfcn.h>
 #endif
+
+
+#define MOUSELOOK
+
+
 
 using namespace std;
 
@@ -68,13 +69,7 @@ void Con_print( const char* fmt, ... )
 	if( con )
 		con->con_print(line);
 	else
-		printf("%s", line.c_str());
-}
-
-void shutdown()	{
-	delete rendarar;
-	delete con;
-	delete cvarReg;
+		cout << line << endl;
 }
 
 MaterialManager* getMaterialManager()	{
@@ -121,7 +116,7 @@ void registerCommand(string name, void (*func)())	{
 	con->registerCommand(name, func);
 }
 
-void registerCommand(string name, void (*func)(string), bool hasArgs)	{
+void registerCommandWithArgs(string name, void (*func)(string), bool hasArgs)	{
 	con->registerCommand(name, func, hasArgs);
 }
 
@@ -296,6 +291,21 @@ void polygonCount()	{
 		Con_print("Cached polygons in scene: %d", rendarar->getCachedPolygonCount());
 }
 
+void setGameCallBacks()	{
+	void* funcs[] = {
+			(void*)&Con_print,
+			(void*)&LoadMap,
+			(void*)&getCvarAddress_I,
+			(void*)&getCvarAddress_D,
+			(void*)&getCvarAddress_S,
+			(void*)&registerCvar,
+			(void*)&registerCommand,
+			(void*)&registerCommandWithArgs
+	};
+
+	g->setBulkCallBacks(funcs);
+}
+
 
 #ifdef linux
 void* gameLibHandle;
@@ -335,11 +345,35 @@ void unloadGameLib()	{
 #endif
 
 #ifdef _WIN32
+#include <windows.h>
+typedef Game* create_t();
+
+HINSTANCE winDLLHandle;
+
 void loadGameDLL()	{
+	Con_print("Loading DLL...");
+	winDLLHandle = LoadLibrary("MyGame.dll");
+
+	if( winDLLHandle != NULL )	{
+		create_t* getGame = (create_t*) GetProcAddress(winDLLHandle, "maker");
+		g = getGame();
+		Con_print("DLL Loaded: %s", g->getName().c_str());
+	}
+	else	{
+		cout << "Couldn't load DLL: " << GetLastError() << endl;
+	}
 
 }
 
 void unloadGameDLL()	{
+
+	if( winDLLHandle != NULL )	{
+		FreeLibrary(winDLLHandle);
+		Con_print("DLL Unloaded");
+	}
+	else	{
+		cout << "winDLLHandle == NULL" << endl;
+	}
 
 }
 #endif
@@ -362,6 +396,15 @@ void unloadGame()	{
 #ifdef _WIN32
 	unloadGameDLL();
 #endif
+}
+
+
+void shutdown()	{
+	Con_print("Unloading game dll...");
+	unloadGame();
+	delete rendarar;
+	delete con;
+	delete cvarReg;
 }
 
 int main(int argc, char** argv) {
@@ -395,20 +438,19 @@ int main(int argc, char** argv) {
 	con = new Console(1024,768);
 
 	registerCommand("quit", shutdown);
-	registerCommand("echo", echo, true);
+	registerCommandWithArgs("echo", echo, true);
 	registerCommand("vid_restart", vid_restart);
 	registerCommand("gl_info", printGLInfo);
-	registerCommand("gl_loadmodel", LoadModel, true);
-	registerCommand("gl_loadmap", LoadMap, true);
+	registerCommandWithArgs("gl_loadmodel", LoadModel, true);
+	registerCommandWithArgs("gl_loadmap", LoadMap, true);
 	registerCommand("gl_polycount", polygonCount);
 
 
 	loadGame();
+	setGameCallBacks();
+	g->init();
 
 	g->newPacket();
-	Con_print("Game Loaded: %s", g->getName().c_str());
-
-	unloadGame();
 
 	rendarar->run();
 

@@ -9,7 +9,8 @@ class MyGame : public Game	{
 public:
 	MyGame();
 	virtual ~MyGame();
-
+	void init();
+	void printGameInfo();
 	void newPacket();
 };
 
