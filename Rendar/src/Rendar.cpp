@@ -22,7 +22,7 @@ extern double* getCvarAddress_D(string s);
 extern string* getCvarAddress_S(string s);
 extern void registerCvar(string name, string value, int typeFlag);
 extern string getCWD();
-extern void registerCommand(string name, void (*func)(string), bool hasArgs);
+extern void registerCommandWithArgs(string name, void (*func)(string), bool hasArgs);
 extern string getProgramPath();
 
 Rendar::Rendar(string windowTitle) {
