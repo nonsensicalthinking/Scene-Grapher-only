@@ -26,6 +26,8 @@ void CvarRegister::freeRegisteredCvars()	{
 
 
 bool CvarRegister::cvarRegistered(string name)	{
+	string_tolower(name);
+
 	if( registeredCvars.find(name) == registeredCvars.end() )
 		return false;
 
@@ -33,6 +35,10 @@ bool CvarRegister::cvarRegistered(string name)	{
 }
 
 void CvarRegister::registerCvar(string name, string value, int type)	{
+	string preservedName = name;
+	string_tolower(name);
+
+
 	if( registeredCvars.find(name)!=registeredCvars.end() )	{
 		Con_print("Cvar naming conflict: [%s] already exists as a cvar.", name.c_str());
 		return;
@@ -40,10 +46,10 @@ void CvarRegister::registerCvar(string name, string value, int type)	{
 
 	cvar_t* cvar = new cvar_t;
 
-	Con_print("CVAR REGISTERED: [%s] Value: [%s]", name.c_str(), value.c_str());
+	Con_print("CVAR REGISTERED: [%s] Value: [%s]", preservedName.c_str(), value.c_str());
 
 	cvar->typeFlag = type;
-	cvar->name = name;
+	cvar->name = preservedName;
 
 	switch(type)	{
 		case INT_CVAR:
@@ -57,7 +63,6 @@ void CvarRegister::registerCvar(string name, string value, int type)	{
 			break;
 	}
 
-	string_tolower(name);
 	registeredCvars[name] = cvar;
 }
 

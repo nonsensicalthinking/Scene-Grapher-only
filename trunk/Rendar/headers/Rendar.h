@@ -18,6 +18,7 @@
 #include "ModelManager.h"
 #include "Camera.h"
 #include "bsptree.h"
+#include "Font.h"
 
 using namespace std;
 
@@ -30,19 +31,23 @@ class Rendar {
 
 private:
 	int winPtr;	// glut window id
+	int cachedPolygonCount;
+
+	// cvar pointers
 	int* r_width;
 	int* r_height;
 	int* r_full;
 	int* r_fov;
+	int* r_showFPS;
 	int* r_wireFramePolys;
-	Camera* cam;	// camera
-
 	string *modelPath;
 	string *imagePath;
 
+	Camera* cam;
 	bsp_node_t* bspRoot;
+	Font* screenPrinter;
 
-	int cachedPolygonCount;
+	int frameRate;
 
 public:
 	MaterialManager* matsMgr;
@@ -53,6 +58,8 @@ public:
 	void gl_Init();
 	void run(void);
 	void lighting(void);
+	void tabulateFrameRate();
+	void drawFPS();
 	void draw(void);
 	void changeSize(int w, int h);
 	void renderPolygonList(list<polygon_t*> polygons);

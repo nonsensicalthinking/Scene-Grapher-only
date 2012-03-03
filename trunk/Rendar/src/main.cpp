@@ -17,6 +17,7 @@
 #include "CvarRegister.h"
 #include "Game.h"
 #include <GL/glext.h>
+#include <sys/time.h>
 
 #ifdef _WIN32
 #include <direct.h>
@@ -50,6 +51,39 @@ string getCWD()	{
 	getcwd(path,size);
 	string s = string(path);
 	return s;
+}
+
+/* From Quake 3 Arena
+================
+Sys_Milliseconds
+================
+*/
+/* base time in seconds, that's our origin
+   timeval:tv_sec is an int:
+   assuming this wraps every 0x7fffffff - ~68 years since the Epoch (1970) - we're safe till 2038
+   using unsigned long data type to work right with Sys_XTimeToSysTime */
+unsigned long sys_timeBase = 0;
+/* current time in ms, using sys_timeBase as origin
+   NOTE: sys_timeBase*1000 + curtime -> ms since the Epoch
+     0x7fffffff ms - ~24 days
+   although timeval:tv_usec is an int, I'm not sure wether it is actually used as an unsigned int
+     (which would affect the wrap period) */
+long Sys_Milliseconds (void)
+{
+	struct timeval tp;
+	long curtime;
+
+	gettimeofday(&tp, NULL);
+
+	if (!sys_timeBase)
+	{
+		sys_timeBase = tp.tv_sec;
+		return tp.tv_usec*0.001f;
+	}
+
+	curtime = (tp.tv_sec - sys_timeBase)*1000 + (tp.tv_usec*0.001f);
+
+	return curtime;
 }
 
 void drawConsole()	{
@@ -313,7 +347,9 @@ typedef Game* create_t();
 typedef void destroy_t(Game*);
 
 void loadGameLib(string soName)	{
-	gameLibHandle = dlopen(soName.c_str(), RTLD_LAZY);
+	string canonicalPath = getProgramPath() + "/" + soName;
+	cout << "Attempting to load game: " << canonicalPath << endl;
+	gameLibHandle = dlopen(canonicalPath.c_str(), RTLD_LAZY);
 
 	if( gameLibHandle == NULL )	{
 		cerr << endl << "LoadGame: NULL " << dlerror() << endl;
@@ -329,7 +365,7 @@ void loadGameLib(string soName)	{
 void unloadGameLib()	{
 
 	if( gameLibHandle == NULL )	{
-		cerr << "Unload Game: NULL gameLibHandle" << endl;
+		cerr << "Unload Game: No game loaded." << endl;
 		return;
 	}
 
@@ -347,6 +383,7 @@ void unloadGameLib()	{
 #ifdef _WIN32
 #include <windows.h>
 typedef Game* create_t();
+typedef void destroy_t(Game*);
 
 HINSTANCE winDLLHandle;
 
@@ -367,13 +404,17 @@ void loadGameDLL(string dllName)	{
 
 void unloadGameDLL()	{
 
-	if( winDLLHandle != NULL )	{
-		FreeLibrary(winDLLHandle);
-		Con_print("DLL Unloaded");
+	if( winDLLHandle == NULL )	{
+		cout << "Unload Game: No game loaded." << endl;
+		return;
 	}
-	else	{
-		cout << "winDLLHandle == NULL" << endl;
-	}
+
+	destroy_t* freeGame = (destroy_t*) GetProcAddress(winDLLHandle, "destroyer");
+
+	freeGame(g);
+
+	FreeLibrary(winDLLHandle);
+	Con_print("DLL Unloaded");
 
 }
 #endif
@@ -425,7 +466,6 @@ int main(int argc, char** argv) {
 	registerCvar("r_height", 		"600", 					INT_CVAR);
 	registerCvar("r_full", 			"0", 					INT_CVAR);
 	registerCvar("r_fov",			"45",					INT_CVAR);
-	registerCvar("g_gravity", 		"9.8", 					DOUBLE_CVAR);
 	registerCvar("r_modelPath",		getCWD()+"/models/",	STRING_CVAR);
 	registerCvar("r_imagePath", 	getCWD()+"/images/",	STRING_CVAR);
 

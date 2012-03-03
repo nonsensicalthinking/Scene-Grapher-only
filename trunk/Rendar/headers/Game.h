@@ -8,6 +8,8 @@
 
 using namespace std;
 
+
+
 class Game	{
 
 protected:
@@ -33,3 +35,4 @@ public:
 	string getName();
 	virtual void printGameInfo();
 };
+

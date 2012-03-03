@@ -1,6 +1,5 @@
 #include "MyGame.h"
 
-
 extern "C" Game* maker()	{
 	return new MyGame();
 }
