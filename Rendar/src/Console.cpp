@@ -213,6 +213,7 @@ void Console::processConsoleCommand(const string conInput)	{
 
 	// Process command
 	string cmd = input.substr(0, input.find_first_of(" "));
+
 	string content = input.substr(input.find_first_of(" ")+1);
 
 	map<string, cmd_t*>::iterator itr = registeredCommands.find(cmd);
@@ -243,6 +244,8 @@ void Console::processConsoleCommand(const string conInput)	{
 
 
 void Console::registerCommand(string name, void (*func)())	{
+	string_tolower(name);
+
 	cmd_t* cmd = new cmd_t;
 	cmd->name = name;
 	cmd->func = func;
@@ -257,6 +260,8 @@ void Console::registerCommand(string name, void (*func)())	{
 }
 
 void Console::registerCommand(string name, void (*func)(string), bool hasArgs)	{
+	string_tolower(name);
+
 	cmd_t* cmd = new cmd_t;
 	cmd->name = name;
 	cmd->func1 = func;
@@ -285,17 +290,22 @@ map<string,cmd_t*>::iterator Console::cmdUpperBound(string str)	{
 }
 
 
-void Console::autoComplete()	{
-	string_tolower(inputString);
 
-// TODO Check for exact matches first, if no exact maches, check how many there are total, if there is only 1...auto-compelte!
+// TODO fix autocomplete bug with case sensitivity.
+// when entering lowercase r_showf, autocomplete won't resolve r_showFPS
+// when entering r_showF autocompelte will resolve r_showFPS
+void Console::autoComplete()	{
+	string cmdInput = inputString;
+	string_tolower(cmdInput);
+
+//	Con_print("DEBUG: autoComplete searching for: %s", cmdInput.c_str());
 
 	map<string, cmd_t*>::iterator cmdItr;
 	map<string, cmd_t*>::iterator cmdUB;
 	list<string> foundList;
 
-	cmdItr = registeredCommands.lower_bound(inputString);
-	cmdUB = cmdUpperBound(inputString);// registeredCommands.upper_bound(inputString);
+	cmdItr = registeredCommands.lower_bound(cmdInput);
+	cmdUB = cmdUpperBound(cmdInput);
 
 	for(; cmdItr != cmdUB; cmdItr++)	{
 		cmd_t* c1 = (*cmdItr).second;
@@ -304,8 +314,8 @@ void Console::autoComplete()	{
 
 	map<string, cvar_t*>::iterator cvarItr;
 	map<string, cvar_t*>::iterator cvarUB;
-	cvarItr = cvarLowerBound(inputString);
-	cvarUB = cvarUpperBound(inputString);
+	cvarItr = cvarLowerBound(cmdInput);
+	cvarUB = cvarUpperBound(cmdInput);
 
 	for(; cvarItr != cvarUB; cvarItr++)	{
 		cvar_t* c2 = (*cvarItr).second;
@@ -326,7 +336,7 @@ void Console::autoComplete()	{
 			}
 		}
 		else	{
-			Con_print("0 commands/cvars found.");
+			Con_print("0 commands/cvars found matching: %s.", cmdInput.c_str());
 		}
 	}
 

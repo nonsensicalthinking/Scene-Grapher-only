@@ -15,6 +15,7 @@
 
 using namespace std;
 
+extern long Sys_Milliseconds(void);
 extern void drawConsole();
 extern void Con_print(const char* fmt, ...);
 extern int* getCvarAddress_I(string s);
@@ -30,6 +31,7 @@ Rendar::Rendar(string windowTitle) {
 
 	// register cvars
 	registerCvar("r_wireframepolys", "0", 1);
+	registerCvar("r_showFPS", "1", 1);
 
 	// get addresses for newly registered cvars
 	r_wireFramePolys = getCvarAddress_I("r_wireframePolys");
@@ -37,6 +39,7 @@ Rendar::Rendar(string windowTitle) {
 	r_height = getCvarAddress_I("r_height");
 	r_full = getCvarAddress_I("r_full");
 	r_fov = getCvarAddress_I("r_fov");
+	r_showFPS = getCvarAddress_I("r_showFPS");
 	modelPath = getCvarAddress_S("r_modelPath");
 	imagePath = getCvarAddress_S("r_imagePath");
 
@@ -102,6 +105,9 @@ void Rendar::gl_Init()	{
 
 
 void Rendar::run(void)	{
+	// this cannot be created in the constructor.
+	screenPrinter = new Font(1024,768);
+
 	glutMainLoop();
 }
 
@@ -147,6 +153,33 @@ void Rendar::lighting()	{
 
 }
 
+void Rendar::tabulateFrameRate()	{
+	static int frameCount = 0;
+	static long lastFrameTime = Sys_Milliseconds();
+	static long frameStamp = lastFrameTime;
+	long curFrameTime = Sys_Milliseconds();
+
+	frameCount++;
+	lastFrameTime = curFrameTime;
+
+	if( frameStamp <= curFrameTime )	{
+		this->frameRate = frameCount;
+		frameCount = 0;
+		frameStamp = curFrameTime+1000;
+	}
+}
+
+void Rendar::drawFPS()	{
+	int h = *r_height;
+	int w = *r_width;
+	static int INLET = (10.25*9);
+
+	stringstream s;
+	s << "FPS: " << frameRate;
+	screenPrinter->glPrint(0, 0, s.str().c_str(), 0);
+}
+
+
 void Rendar::draw(void)	{
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -170,9 +203,16 @@ void Rendar::draw(void)	{
 	// render the console
 	drawConsole();
 
+	tabulateFrameRate();
+
+	if( *r_showFPS == 1 )
+		drawFPS();
+
 	glutSwapBuffers();
 
 }
+
+
 
 
 void Rendar::changeSize(int width, int height)	{
