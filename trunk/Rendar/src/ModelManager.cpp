@@ -53,14 +53,11 @@ bool ModelManager::addModel(string name)	{
 		Con_print("File: %s", canonicalPath.c_str());
 
 		model_t* mod = new model_t;
-
 		mod->name = name;
+		mod->md2 = MD2Model::load(canonicalPath.c_str());
 
 		modelMap.insert(pair<string,model_t*>(name,mod));
-
-
-		// TODO: Load md2 model
-
+		return true;
 	}
 	else	{
 		Con_print("Model Manager: '%s' is an invalid model extension.", extension.c_str());
@@ -75,6 +72,28 @@ bool ModelManager::removeModel(string name)	{
 	return false;
 }
 
+model_t* ModelManager::cloneModel(string name)	{
+	model_t* m = modelMap[name];
+
+	if( m != NULL )	{
+		model_t* clone = new model_t;
+
+		clone->cacheID = m->cacheID;
+		clone->name = m->name;
+		VectorCopy(m->dimensions, clone->dimensions);
+
+		// must be written like this for implicit object copy
+		MD2Model* md2 = m->md2;
+		clone->md2 = md2;
+
+		Con_print("MD2 Model Cloned Successfully!");
+		return clone;
+	}
+
+	Con_print("Couldn't clone model: %s not found", name.c_str());
+
+	return NULL;
+}
 
 /*
  * Returns positive value if model is cached and found

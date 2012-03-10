@@ -116,6 +116,11 @@ bool MaterialManager::loadBitmap(string str)	{
 	return true;
 }
 
+
+GLuint MaterialManager::getGLTexID(string texName)	{
+	return textures[texName];
+}
+
 void MaterialManager::unloadTexture(string path)	{
 	textures.erase(path);
 }
