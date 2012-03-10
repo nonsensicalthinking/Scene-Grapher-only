@@ -10,6 +10,7 @@
 #include "Rendar.h"
 #include "shared.h"
 #include "WavefrontObj.h"
+#include "md2model.h"
 
 #define MOUSELOOK
 
@@ -199,6 +200,8 @@ void Rendar::draw(void)	{
 //	glTranslated(0, 0, 10);
 
 	renderBSPTree(bspRoot);
+
+	renderDynamicModels(0.01);
 
 	// render the console
 	drawConsole();
@@ -414,3 +417,41 @@ Camera* Rendar::getCamera()	{
 	return cam;
 }
 
+void Rendar::addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id)	{
+	entity_t* ent = new entity_t;
+
+	ent->gameID = id;
+	VectorCopy(pos, ent->pos);
+	VectorCopy(facing, ent->facing);
+	ent->model = modelMgr->cloneModel(modelName);
+
+	// add to data structures
+	gameModels[ent->gameID] = ent;
+	dynamicModels.push_back(ent);
+
+}
+
+void Rendar::renderDynamicModels(float dt)	{
+	list<entity_t*>::iterator itr;
+
+	for(itr=dynamicModels.begin(); itr!=dynamicModels.end(); itr++)	{
+		entity_t* e = (*itr);
+		if( e->model )	{
+			e->model->md2->advance(dt);
+
+			glPushMatrix();
+			glTranslated(e->pos[0], e->pos[1], e->pos[2]);
+			e->model->md2->draw();
+			glPopMatrix();
+
+		}
+	}
+}
+
+void Rendar::getCameraPos(vec3_t v)	{
+	VectorCopy(cam->origin, v);
+}
+
+void Rendar::getCameraFacing(vec3_t v)	{
+	VectorCopy(cam->normDir, v);
+}

@@ -64,6 +64,7 @@ public:
 	bool enableMaterial(string matName);
 	void disableMaterial(string matName);
 	bool loadBitmap(string str);
+	GLuint getGLTexID(string texName);
 	void unloadTexture(string path);
 	void unloadAllTextures();
 	void addMaterial(string matName, material_t* mat);

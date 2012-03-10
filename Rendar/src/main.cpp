@@ -209,8 +209,8 @@ void processNormalKeys(unsigned char key, int x, int y)	{
 
 		tempCamControl(key, x, y);
 
-		// TODO forward to game
-//		keyPressed(key, x, y);
+		if( g )
+			g->processNormalKeys(key, x, y);
 	}
 
 }
@@ -241,7 +241,8 @@ void processSpecialKeys(int key, int x, int y) {
 				con->consoleActive = !con->consoleActive;
 				break;
 			default:
-				// send to game
+				if( g )
+					g->processSpecialKeys(key, x, y);
 				break;
 		}
 	}
@@ -308,6 +309,11 @@ void printGLInfo()	{
 
 }
 
+void RegisterEntityWithScene(string model, vec3_t pos, vec3_t facing, int id)	{
+	if( rendarar )
+		rendarar->addEntityToScene(model, pos, facing, id);
+}
+
 void LoadModel(string path)	{
 	if( rendarar )
 		rendarar->LoadModel(path);
@@ -320,6 +326,23 @@ void LoadMap(string name)	{
 	}
 }
 
+void getCameraPos(vec3_t v)	{
+	if( rendarar )
+		rendarar->getCameraPos(v);
+}
+
+void getCameraFacing(vec3_t v)	{
+	if( rendarar )
+		rendarar->getCameraFacing(v);
+}
+
+bsp_node_t* getBSPTree()	{
+	if( rendarar )
+		return rendarar->bspRoot;
+
+	return NULL;
+}
+
 void polygonCount()	{
 	if( rendarar )
 		Con_print("Cached polygons in scene: %d", rendarar->getCachedPolygonCount());
@@ -329,12 +352,17 @@ void setGameCallBacks()	{
 	void* funcs[] = {
 			(void*)&Con_print,
 			(void*)&LoadMap,
+			(void*)&LoadModel,
+			(void*)&RegisterEntityWithScene,
+			(void*)&getBSPTree,
 			(void*)&getCvarAddress_I,
 			(void*)&getCvarAddress_D,
 			(void*)&getCvarAddress_S,
 			(void*)&registerCvar,
 			(void*)&registerCommand,
-			(void*)&registerCommandWithArgs
+			(void*)&registerCommandWithArgs,
+			(void*)&getCameraPos,
+			(void*)&getCameraFacing
 	};
 
 	g->setBulkCallBacks(funcs);
@@ -448,7 +476,6 @@ void unloadGame()	{
 
 
 void shutdown()	{
-	Con_print("Unloading game dll...");
 	unloadGame();
 	delete rendarar;
 	delete con;
@@ -495,6 +522,8 @@ int main(int argc, char** argv) {
 
 	registerCommandWithArgs("game_load", loadGame, true);
 	registerCommand(		"game_unload", unloadGame);
+
+	registerCommandWithArgs("loadmd2", LoadModel, true);
 
 	rendarar->run();
 

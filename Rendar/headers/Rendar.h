@@ -26,7 +26,6 @@ using namespace std;
 #define Z_FAR 	700
 
 
-
 class Rendar {
 
 private:
@@ -44,12 +43,18 @@ private:
 	string *imagePath;
 
 	Camera* cam;
-	bsp_node_t* bspRoot;
 	Font* screenPrinter;
+
+	list<entity_t*> dynamicModels;
+
+	map<int, entity_t*> gameModels;
+
+
+public:
+	bsp_node_t* bspRoot;
 
 	int frameRate;
 
-public:
 	MaterialManager* matsMgr;
 	ModelManager* modelMgr;
 
@@ -72,7 +77,11 @@ public:
 	void unCachePolygons(bsp_node_t* bspNode);
 	void LoadModel(string path);
 	int getCachedPolygonCount();
+	void addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id);
+	void renderDynamicModels(float dt);
 	Camera* getCamera();
+	void getCameraPos(vec3_t v);
+	void getCameraFacing(vec3_t v);
 };
 
 #endif /* RENDAR_H_ */

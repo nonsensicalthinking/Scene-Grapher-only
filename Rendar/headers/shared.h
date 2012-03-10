@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <math.h>
+#include "md2model.h"
 
 using namespace std;
 
@@ -54,6 +55,23 @@ typedef struct plane_s	{
 	vec3_t origin;
 	vec3_t normal;
 }plane_t;
+
+typedef struct model_s	{
+	GLint cacheID;
+	string name;		// path?
+	vec3_t dimensions;	// bounding box dimensions
+	MD2Model* md2;
+}model_t;
+
+typedef struct entity_s {
+	vec3_t pos;
+	vec3_t facing;
+	int gameID;
+	string name;
+	model_t* model;
+}entity_t;
+
+
 
 // NOTICE: TO CREATE A NEW POLYGON YOU SHOULD USE
 // THE createPolygon() FUNCTION.
