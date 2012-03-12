@@ -10,8 +10,8 @@ The Rendar project is being developed concurrently on the Windows and Linux plat
 = Details =
 
 *Supported Operating Systems:
-  * Windows (tested: Windows 7 64bit, Windows XP 32bit)
-  * Linux (tested: Ubuntu 10, Ubuntu 11)
+  *Windows (tested: Windows 7 64bit, Windows XP 32bit)
+  *Linux (tested: Ubuntu 10, Ubuntu 11)
 
 *Requirements:
   * FreeGLUT
