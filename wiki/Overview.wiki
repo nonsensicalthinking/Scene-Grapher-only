@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary General Information About the Rendar Project.
 
 = Introduction =
 
@@ -9,7 +9,15 @@ The Rendar project is being developed concurrently on the Windows and Linux plat
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+Supported Operating Systems:
+* Windows (tested: Windows 7 64bit, Windows XP 32bit)
+* Linux (tested: Ubuntu 10, Ubuntu 11)
+
+Requirements:
+* FreeGLUT
+* OpenGL
+
+Currently Supported Model Formats:
+* MD2 Models
+* Wavefront OBJ Models
+* TODO: Allow for user specified models
