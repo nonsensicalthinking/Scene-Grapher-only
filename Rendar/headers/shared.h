@@ -59,6 +59,7 @@ typedef struct plane_s	{
 typedef struct model_s	{
 	GLint cacheID;
 	string name;		// path?
+	string action;		// animation to play, run_, walk_, death3_...
 	vec3_t dimensions;	// bounding box dimensions
 	MD2Model* md2;
 }model_t;

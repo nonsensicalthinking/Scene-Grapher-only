@@ -9,6 +9,9 @@ extern "C" void destroyer(Game* g)	{
 	cout << "Game Unloaded" << endl;
 }
 
+
+double* modelAdvancerate;
+
 MyGame::MyGame() : Game()	{
 	setName("MyGame!");
 }
@@ -20,7 +23,9 @@ MyGame::~MyGame()	{
 
 void MyGame::init()	{
 	registerCvar("g_name", getName(), CVAR_STRING);
-	LoadModel("tallguy.md2");
+	LoadModel("tall-alien.md2");
+	LoadModel("greenalien.md2");
+	LoadMap("simple-demo.obj");
 
 }
 
@@ -31,9 +36,16 @@ void MyGame::processNormalKeys(unsigned char key, int x, int y)	{
 	getCameraPos(pos);
 	getCameraFacing(facing);
 
+	entity_t* e;
+
 	switch(key)	{
 	case 'l':
-		RegisterEntityWithScene("tallguy.md2", pos, facing, 1);
+		e = RegisterEntityWithScene("tall-alien.md2", pos, facing, 1);
+		setAnimation(e, "run_");
+		break;
+	case 'k':
+		e = RegisterEntityWithScene("greenalien.md2", pos, facing, 1);
+		setAnimation(e, "stand_");
 		break;
 	}
 }

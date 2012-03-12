@@ -309,9 +309,14 @@ void printGLInfo()	{
 
 }
 
-void RegisterEntityWithScene(string model, vec3_t pos, vec3_t facing, int id)	{
+void setAnimation(entity_t* e, string animName)	{
 	if( rendarar )
-		rendarar->addEntityToScene(model, pos, facing, id);
+		rendarar->setAnimation(e, animName);
+}
+
+entity_t* RegisterEntityWithScene(string model, vec3_t pos, vec3_t facing, int id)	{
+	if( rendarar )
+		return rendarar->addEntityToScene(model, pos, facing, id);
 }
 
 void LoadModel(string path)	{
@@ -343,6 +348,12 @@ bsp_node_t* getBSPTree()	{
 	return NULL;
 }
 
+
+void printTextures()	{
+	if( rendarar )
+		rendarar->printTextures();
+}
+
 void polygonCount()	{
 	if( rendarar )
 		Con_print("Cached polygons in scene: %d", rendarar->getCachedPolygonCount());
@@ -354,6 +365,7 @@ void setGameCallBacks()	{
 			(void*)&LoadMap,
 			(void*)&LoadModel,
 			(void*)&RegisterEntityWithScene,
+			(void*)&setAnimation,
 			(void*)&getBSPTree,
 			(void*)&getCvarAddress_I,
 			(void*)&getCvarAddress_D,
@@ -524,6 +536,8 @@ int main(int argc, char** argv) {
 	registerCommand(		"game_unload", unloadGame);
 
 	registerCommandWithArgs("loadmd2", LoadModel, true);
+
+	registerCommand(		"tex_list", printTextures);
 
 	rendarar->run();
 
