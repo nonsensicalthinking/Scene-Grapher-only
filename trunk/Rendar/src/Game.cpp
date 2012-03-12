@@ -19,7 +19,8 @@ void Game::setBulkCallBacks(void* funcs[])	{
 	Con_print = (void (*)(const char*, ...))funcs[x++];
 	LoadMap = (void (*)(string))funcs[x++];
 	LoadModel = (void (*)(string))funcs[x++];
-	RegisterEntityWithScene = (void (*)(string, vec3_t, vec3_t, int))funcs[x++];
+	RegisterEntityWithScene = (entity_t* (*)(string, vec3_t, vec3_t, int))funcs[x++];
+	setAnimation = (void (*)(entity_t*, string))funcs[x++];
 	getBSPTree = (bsp_node_t* (*)())funcs[x++];
 	getCvarAddress_I = (int* (*)(string))funcs[x++];
 	getCvarAddress_D = (double* (*)(string))funcs[x++];

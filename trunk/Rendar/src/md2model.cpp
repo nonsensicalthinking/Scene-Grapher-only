@@ -333,6 +333,8 @@ MD2Model* MD2Model::load(const char* filename) {
 	ifstream input;
 	input.open(filename, istream::binary);
 	
+	Con_print("****MD2LOAD:START****");
+
 	char buffer[64];
 	input.read(buffer, 4); //Should be "IPD2", if this is an MD2 file
 	if (buffer[0] != 'I' || buffer[1] != 'D' ||
@@ -368,24 +370,35 @@ MD2Model* MD2Model::load(const char* filename) {
 	readInt(input);                      //The offset to the OpenGL commands
 	readInt(input);                      //The offset to the end of the file
 	
+	MD2Model* model = new MD2Model();
+	MaterialManager* matsMgr = getMaterialManager();
+
+
 	//Load the texture
 	input.seekg(textureOffset, ios_base::beg);
 	input.read(buffer, 64);
-	if (strlen(buffer) < 5 ||
-		strcmp(buffer + strlen(buffer) - 4, ".bmp") != 0) {
-		Con_print("MD2 Error: Couldn't parse texture name");
-		return NULL;
+
+	// FIXME
+	// Hack to get the md2 models with pcx textures to load bmp version instead
+	string s = buffer;
+	s = s.substr(0, s.find_last_of("."));
+	s = s + ".bmp";
+	strcpy(buffer, s.c_str());
+	// END FIXME
+	////////////////////////
+
+	if (strlen(buffer) < 5 || strcmp(buffer + strlen(buffer) - 4, ".bmp") != 0 ) {
+		Con_print("MD2 Error: Couldn't parse texture name: %s", buffer);
+
+		// Set texture not found because we can't load the texture that was set
+		model->textureId = matsMgr->getGLTexID("not-found.bmp");
 	}
-//	 loadBMP(buffer);
-	MaterialManager* matsMgr = getMaterialManager();
-	matsMgr->loadBitmap(buffer);
+	else	{
+		if( !matsMgr->hasMaterial(buffer) )
+			matsMgr->loadBitmap(buffer);
 
-	//loadTexture();
-	GLuint textureId = matsMgr->getGLTexID(buffer);
-
-
-	MD2Model* model = new MD2Model();
-	model->textureId = textureId;
+		model->textureId = matsMgr->getGLTexID(buffer);
+	}
 	
 	//Load the texture coordinates
 	input.seekg(texCoordOffset, ios_base::beg);
@@ -440,6 +453,11 @@ MD2Model* MD2Model::load(const char* filename) {
 	
 	model->startFrame = 0;
 	model->endFrame = numFrames - 1;
+
+	Con_print("numFrames: %d", numFrames );
+
+	Con_print("****MD2LOAD:FINISH****");
+
 	return model;
 }
 

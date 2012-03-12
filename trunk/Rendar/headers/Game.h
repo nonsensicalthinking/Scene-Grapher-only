@@ -20,7 +20,8 @@ protected:
 	void (*Con_print)(const char*, ...);
 	void (*LoadMap)(string);
 	void (*LoadModel)(string);
-	void (*RegisterEntityWithScene)(string, vec3_t, vec3_t, int);
+	entity_t* (*RegisterEntityWithScene)(string, vec3_t, vec3_t, int);
+	void (*setAnimation)(entity_t*, string);
 	bsp_node_t* (*getBSPTree)();
 	int* (*getCvarAddress_I)(string);
 	double* (*getCvarAddress_D)(string);

@@ -71,6 +71,8 @@ public:
 	void removeMaterial(string matName);
 	void purgeMaterials();
 	bool hasMaterial(string matName);
+
+	void printTextureList();
 };
 
 

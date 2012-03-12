@@ -24,8 +24,16 @@ extern double* getCvarAddress_D(string s);
 extern string* getCvarAddress_S(string s);
 extern void registerCvar(string name, string value, int typeFlag);
 extern string getCWD();
+extern void registerCommand(string name, void (*func)());
 extern void registerCommandWithArgs(string name, void (*func)(string), bool hasArgs);
 extern string getProgramPath();
+
+double* r_modelAdvRate;
+
+void Rendar::printTextures()	{
+	matsMgr->printTextureList();
+}
+
 
 Rendar::Rendar(string windowTitle) {
 	cachedPolygonCount = 0;
@@ -44,6 +52,10 @@ Rendar::Rendar(string windowTitle) {
 	modelPath = getCvarAddress_S("r_modelPath");
 	imagePath = getCvarAddress_S("r_imagePath");
 
+	// TODO REMOVE THIS DEBUGGING FOR MD2 MODELS
+	registerCvar("r_modelAdvRate", "0.01", 2);
+	r_modelAdvRate = getCvarAddress_D("r_modelAdvRate");
+	// END TODO REMOVE
 
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0,0);
@@ -201,15 +213,17 @@ void Rendar::draw(void)	{
 
 	renderBSPTree(bspRoot);
 
-	renderDynamicModels(0.01);
+	renderDynamicModels(*r_modelAdvRate);
 
-	// render the console
-	drawConsole();
+
 
 	tabulateFrameRate();
-
 	if( *r_showFPS == 1 )
 		drawFPS();
+
+	glDisable(GL_LIGHTING);
+	// render the console
+	drawConsole();
 
 	glutSwapBuffers();
 
@@ -417,7 +431,7 @@ Camera* Rendar::getCamera()	{
 	return cam;
 }
 
-void Rendar::addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id)	{
+entity_t* Rendar::addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id)	{
 	entity_t* ent = new entity_t;
 
 	ent->gameID = id;
@@ -429,6 +443,7 @@ void Rendar::addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int i
 	gameModels[ent->gameID] = ent;
 	dynamicModels.push_back(ent);
 
+	return ent;
 }
 
 void Rendar::renderDynamicModels(float dt)	{
@@ -437,6 +452,7 @@ void Rendar::renderDynamicModels(float dt)	{
 	for(itr=dynamicModels.begin(); itr!=dynamicModels.end(); itr++)	{
 		entity_t* e = (*itr);
 		if( e->model )	{
+//			e->model->md2->setAnimation(e->model->action.c_str());
 			e->model->md2->advance(dt);
 
 			glPushMatrix();
@@ -446,6 +462,10 @@ void Rendar::renderDynamicModels(float dt)	{
 
 		}
 	}
+}
+
+void Rendar::setAnimation(entity_t* e, string animName)	{
+	e->model->md2->setAnimation(animName.c_str());
 }
 
 void Rendar::getCameraPos(vec3_t v)	{

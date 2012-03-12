@@ -14,7 +14,7 @@ extern string* getCvarAddress_S(string s);
 
 
 MaterialManager::MaterialManager()	{
-
+	loadBitmap("not-found.bmp");
 }
 
 MaterialManager::~MaterialManager()	{
@@ -165,4 +165,10 @@ bool MaterialManager::hasMaterial(string matName)	{
 	return true;
 }
 
+void MaterialManager::printTextureList()	{
+	map<string,GLuint>::iterator itr;
+	for(itr=textures.begin(); itr != textures.end(); itr++)	{
+		Con_print("Tex: %s", (*itr).first.c_str());
+	}
+}
 

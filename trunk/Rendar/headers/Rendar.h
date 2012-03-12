@@ -77,11 +77,17 @@ public:
 	void unCachePolygons(bsp_node_t* bspNode);
 	void LoadModel(string path);
 	int getCachedPolygonCount();
-	void addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id);
+	entity_t* addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id);
 	void renderDynamicModels(float dt);
 	Camera* getCamera();
+	void setAnimation(entity_t* e, string animName);
 	void getCameraPos(vec3_t v);
 	void getCameraFacing(vec3_t v);
+
+
+
+	void printTextures();
+
 };
 
 #endif /* RENDAR_H_ */
