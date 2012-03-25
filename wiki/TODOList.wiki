@@ -1,0 +1,7 @@
+#summary General TODO List for the project.
+
+= TODO =
+
+  * Change all lists to linked lists
+  * Implement AABB collision detection
+  * Implement a shader system
