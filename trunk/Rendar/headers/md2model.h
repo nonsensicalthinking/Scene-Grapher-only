@@ -79,10 +79,9 @@ public:
 		string error;
 
 	private:
-		
 		MD2Model();
+		
 	public:
-		MD2Model(const MD2Model& m);
 		~MD2Model();
 		
 		//Switches to the given animation
@@ -93,6 +92,9 @@ public:
 		//Draws the current state of the animated model.
 		void draw();
 		
+		// Added cloning routine to suit Rendar's purposes
+		MD2Model* clone();
+
 		//Loads an MD2Model from the specified file.  Returns NULL if there was
 		//an error loading it.
 		static MD2Model* load(const char* filename);
