@@ -1,0 +1,22 @@
+CXXFLAGS =	-g -rdynamic
+#-O2  -Wall -fmessage-length=0
+OBJS =	src/*.cpp
+INCS = -I"/usr/include/GL" -I"./headers/"
+LIBS = 	-lGL -lGLU -lglut
+
+TARGET = rendarar
+
+$(TARGET):	$(OBJS)
+	$(CXX) -o $(TARGET) $(OBJS) $(LIBS) $(INCS) $(CXXFLAGS)
+
+all:	$(TARGET)
+
+clean:
+	rm -f src/*.o $(TARGET)
+	rm libmygame.so
+
+mod:
+	$(CXX) -fPIC -c -I"./headers/" gameMod/MyGame.cpp
+	$(CXX) -shared -o libmygame.so MyGame.o
+	rm MyGame.o	
+	
