@@ -83,8 +83,8 @@ model_t* ModelManager::cloneModel(string name)	{
 		VectorCopy(m->dimensions, clone->dimensions);
 
 		// must be written like this for implicit object copy
-		MD2Model* md2 = m->md2;
-		clone->md2 = md2;
+//		MD2Model* md2 = m->md2;
+		clone->md2 = m->md2->clone();
 
 		Con_print("MD2 Model Cloned Successfully!");
 		return clone;

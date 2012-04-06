@@ -158,6 +158,7 @@ inline entity_t* unlinkEntity(entity_t* list, entity_t* e)	{
 	return NULL;	// polygon not found in list
 }
 
+
 //////////////// END ENTITY SUPPORT FUNCS ////////////////
 
 // Begin functions
@@ -465,6 +466,7 @@ inline polygon_t* unlinkPolygon(polygon_t* list, polygon_t* p)	{
 
 	return NULL;	// polygon not found in list
 }
+
 
 ///////////////// END POLY SUPPORT FUNCS ///////////////////
 

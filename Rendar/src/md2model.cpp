@@ -301,10 +301,6 @@ namespace {
 	*/
 }
 
-MD2Model::MD2Model(const MD2Model& m) : frames(m.frames), numFrames(m.numFrames),
-		texCoords(m.texCoords), triangles(m.triangles), numTriangles(m.numTriangles),
-		textureId(m.textureId), startFrame(m.startFrame), endFrame(m.endFrame){	}
-
 MD2Model::~MD2Model() {
 	if (frames != NULL) {
 		for(int i = 0; i < numFrames; i++) {
@@ -550,6 +546,24 @@ void MD2Model::draw() {
 	}
 	glEnd();
 }
+
+
+MD2Model* MD2Model::clone()	{
+	MD2Model* clone = new MD2Model();
+
+	clone->frames = frames;
+	clone->numFrames = numFrames;
+	clone->texCoords = texCoords;
+	clone->triangles = triangles;
+	clone->numTriangles = numTriangles;
+	clone->textureId = textureId;
+	clone->startFrame = startFrame;
+	clone->endFrame = endFrame;
+
+	return clone;
+}
+
+
 
 
 
