@@ -59,4 +59,3 @@ void MyGame::printGameInfo()	{
 	Con_print("MyGame loading...%s", "haha");
 }
 
-

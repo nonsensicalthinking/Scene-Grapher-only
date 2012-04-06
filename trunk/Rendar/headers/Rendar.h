@@ -22,15 +22,15 @@
 
 using namespace std;
 
-#define Z_NEAR 	0.1
-#define Z_FAR 	700
-
+#define SKY_TEXTURE "partly_cloudy.bmp"
 
 class Rendar {
 
 private:
+
 	int winPtr;	// glut window id
 	int cachedPolygonCount;
+	int skyCacheID;
 
 	// cvar pointers
 	int* r_width;
@@ -39,16 +39,22 @@ private:
 	int* r_fov;
 	int* r_showFPS;
 	int* r_wireFramePolys;
+	double* zNear;
+	double* zFar;
 	string *modelPath;
 	string *imagePath;
 
 	Camera* cam;
 	Font* screenPrinter;
 
-	list<entity_t*> dynamicModels;
+	GLUquadric* sky;
+
+	entity_t* dynamicModels;
 
 	map<int, entity_t*> gameModels;
 
+
+//	"Polygon count:"
 
 public:
 	bsp_node_t* bspRoot;
@@ -67,10 +73,10 @@ public:
 	void drawFPS();
 	void draw(void);
 	void changeSize(int w, int h);
-	void renderPolygonList(list<polygon_t*> polygons);
+	void renderPolygonList(polygon_t* polygons);
 	void drawPolygon(polygon_t* poly);
 	void renderBSPTree(bsp_node_t* tree);
-	int countPolygonsInTree(bsp_node_t* tree);
+//	int countPolygonsInTree(bsp_node_t* tree);
 	void bspFromObjModel(string modelName);
 	void glCachePolygon(polygon_t* polygon);
 	void nameAndCachePolygons(bsp_node_t* bspNode);
@@ -83,6 +89,7 @@ public:
 	void setAnimation(entity_t* e, string animName);
 	void getCameraPos(vec3_t v);
 	void getCameraFacing(vec3_t v);
+	void cacheSky();
 
 
 
