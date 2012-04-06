@@ -16,8 +16,6 @@ extern string* getCvarAddress_S(string s);
 
 ObjModel::ObjModel()	{
 	x_max = x_min = y_max = y_min = z_max = z_min = 0;
-	polygonList = NULL;
-	polygonListCount = 0;
 }
 
 ObjModel::~ObjModel()	{
@@ -152,14 +150,6 @@ void ObjModel::processOBJLine(char line[MAX_OBJ_LINE_LEN])	{
 					face[2][1] = -1;
 				}
 
-#ifdef OBJDEBUG
-				cout << "3 pointed polygon (makeFace())" << endl;
-				VectorPrint(face[0]);
-				VectorPrint(face[1]);
-				VectorPrint(face[2]);
-				cout << "\n------------------------------" << endl;
-#endif
-
 				makeFace(face, 3, hasTex);
 				break;
 
@@ -181,7 +171,6 @@ void ObjModel::processOBJLine(char line[MAX_OBJ_LINE_LEN])	{
 							&sface[2][0], &sface[2][2],
 							&sface[3][0], &sface[3][2]);
 
-
 					// set to -1 so if we even try to index
 					// we'll get an out of bounds here instead of
 					// indexing the 0th place
@@ -191,34 +180,24 @@ void ObjModel::processOBJLine(char line[MAX_OBJ_LINE_LEN])	{
 					sface[3][1] = -1;
 				}
 
-#ifdef OBJDEBUG
-				cout << "4 pointed polygon (makeFace())" << endl;
-				VectorPrint(sface[0]);
-				VectorPrint(sface[1]);
-				VectorPrint(sface[2]);
-				VectorPrint(sface[3]);
-				cout << "\n------------------------------" << endl;
-#endif
-
 				makeFace(sface, 4, hasTex);
 				break;
 		}
 	}
 	else if( !strcmp(token, "s") )	{
-		// TODO Find out what this does
+		// TODO Figure out what this does
 		// argument to this token is a string
 		// "on" or "off" it appears.
 	}
 	else if( !strcmp(token, "usemtl") )	{
+
 		token = strtok(NULL, WHITESPACE);
 		strcpy(curMat, token);
+
 	}
 	else if( !strcmp( token, "mtllib") )	{
 		token = strtok(NULL, WHITESPACE);
 		loadMTLFile(token);
-	}
-	else if( !strcmp( token, "o") )	{
-		// TODO implement face associate with an "object"
 	}
 	else	{
 		cout << "Unrecognized OBJ Token: " << token << endl;
@@ -261,20 +240,8 @@ void ObjModel::makeFace(vec3_t face[], int numPts, bool isTextured)	{
 		poly->normpts[x][2] = vn[(face[x][2]-1)][2];
 	}
 
-	polygonListCount++;
-	polygonList = doublyLinkPolygons(polygonList, poly);
-
-#ifdef OBJDEBUG
-	int tempCount = 0;
-
-	polygon_t* t = polygonList;
-	while( t )	{
-		tempCount++;
-		t = t->next;
-	}
-	Con_print("Running polygon count: %d", polygonListCount);
-	Con_print("Confirmed polygon count: %d", tempCount);
-#endif
+//		Scene* s = getScene();
+	polygonList.push_back(poly);
 }
 
 void ObjModel::initializeMaterial(material_t* mat)	{

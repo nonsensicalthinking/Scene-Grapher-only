@@ -54,8 +54,7 @@ class ObjModel	{
 
 public:
 	string error;
-	polygon_t* polygonList;
-	int polygonListCount;
+	list<polygon_t*> polygonList;
 
 	ObjModel();
 	~ObjModel();

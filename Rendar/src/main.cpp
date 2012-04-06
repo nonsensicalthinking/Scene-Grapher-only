@@ -507,8 +507,7 @@ int main(int argc, char** argv) {
 	registerCvar("r_fov",			"45",					INT_CVAR);
 	registerCvar("r_modelPath",		getCWD()+"/models/",	STRING_CVAR);
 	registerCvar("r_imagePath", 	getCWD()+"/images/",	STRING_CVAR);
-	registerCvar("z_nearClip", 		"0.1",					DOUBLE_CVAR);
-	registerCvar("z_farClip", 		"500",					DOUBLE_CVAR);
+
 
 	glutInit(&argc, argv);
 

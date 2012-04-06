@@ -49,12 +49,10 @@ Rendar::Rendar(string windowTitle) {
 	r_full = getCvarAddress_I("r_full");
 	r_fov = getCvarAddress_I("r_fov");
 	r_showFPS = getCvarAddress_I("r_showFPS");
-	zNear = getCvarAddress_D("z_nearClip");
-	zFar = getCvarAddress_D("z_farClip");
 	modelPath = getCvarAddress_S("r_modelPath");
 	imagePath = getCvarAddress_S("r_imagePath");
 
-	// TODO REMOVE, THIS IS DEBUGGING FOR MD2 MODELS
+	// TODO REMOVE THIS DEBUGGING FOR MD2 MODELS
 	registerCvar("r_modelAdvRate", "0.01", 2);
 	r_modelAdvRate = getCvarAddress_D("r_modelAdvRate");
 	// END TODO REMOVE
@@ -71,7 +69,6 @@ Rendar::Rendar(string windowTitle) {
 
 	cam = new Camera();
 	bspRoot = NULL;
-	dynamicModels = NULL;
 }
 
 Rendar::~Rendar() {
@@ -92,28 +89,6 @@ Rendar::~Rendar() {
 		cout << "Shutdown: Model Manager Unloaded." << endl;
 	}
 
-	if( bspRoot )	{
-		deleteTree(bspRoot);
-		cout << "Shutdown: BSP Tree & All Polygons Unloaded." << endl;
-	}
-
-}
-
-void Rendar::cacheSky()	{
-	sky = gluNewQuadric();
-	gluQuadricTexture(sky, true);
-	gluQuadricOrientation(sky, GLU_INSIDE);
-	matsMgr->loadBitmap(SKY_TEXTURE);
-
-	skyCacheID = glGenLists(1);
-	glNewList(skyCacheID, GL_COMPILE);
-	glPushMatrix();
-	matsMgr->enableSphereMapping();
-	matsMgr->bindTexture(SKY_TEXTURE);
-	gluSphere(sky, 350, 10, 5);
-	matsMgr->disableSphereMapping();
-	glPopMatrix();
-	glEndList();
 }
 
 void Rendar::gl_Init()	{
@@ -134,17 +109,12 @@ void Rendar::gl_Init()	{
 	glutSetCursor(GLUT_CURSOR_NONE);
 #endif
 
-	sky = gluNewQuadric();
-	gluQuadricTexture(sky, true);
-	gluQuadricOrientation(sky, GLU_INSIDE);
-	matsMgr->loadBitmap(SKY_TEXTURE);
-	cacheSky();
+
 
 	//load basic textures for fonts and console
 
 	// Used to call user code to load game here.
 }
-
 
 
 void Rendar::run(void)	{
@@ -156,12 +126,12 @@ void Rendar::run(void)	{
 
 void Rendar::lighting()	{
 	GLfloat df = 1.0;
-	GLfloat amb[]=	{0.9, 0.9, 0.9, 0};   		//global ambient
+	GLfloat amb[]=	{0.9, 0.9, 0.9, 1};   		//global ambient
 
 	GLfloat amb2[]=	{1, 1, 1, 1};  		//ambiance of light source
-	GLfloat diff[]=	{1.0, 1.0, 1.0, 0};	// diffuse light
-	GLfloat spec[]=	{1.0, 1.0, 1.0, 0};      	//sets specular highlight
-	GLfloat posl[]=	{0, 5, 0, 0};            //position of light source
+	GLfloat diff[]=	{1.0, 1.0, 1.0, 1.0};	// diffuse light
+	GLfloat spec[]=	{1.0, 1.0, 1.0, 1.0};      	//sets specular highlight
+	GLfloat posl[]=	{0, 20, 0, 1};            //position of light source
 
 //	GLfloat posL1[] = {0, 5, 0};
 //	GLfloat spotDir[] = {0, -1, 0};
@@ -239,22 +209,21 @@ void Rendar::draw(void)	{
 
 	lighting();
 
-	// draw sky
-	GLfloat emis[] = {0.8, 0.8, 0.8};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emis);
-	glCallList(skyCacheID);
+//	glTranslated(0, 0, 10);
 
 	renderBSPTree(bspRoot);
 
 	renderDynamicModels(*r_modelAdvRate);
 
-	tabulateFrameRate();
 
+
+	tabulateFrameRate();
 	if( *r_showFPS == 1 )
 		drawFPS();
 
 	glDisable(GL_LIGHTING);
-	drawConsole();		// render the console
+	// render the console
+	drawConsole();
 
 	glutSwapBuffers();
 
@@ -278,7 +247,7 @@ void Rendar::changeSize(int width, int height)	{
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(*r_fov, asratio, *zNear, *zFar); //adjust perspective
+    gluPerspective(*r_fov, asratio, Z_NEAR, Z_FAR); //adjust perspective
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -329,23 +298,17 @@ void Rendar::drawPolygon(polygon_t* poly)	{
 	}
 }
 
-void Rendar::renderPolygonList(polygon_t* polygonList)	{
+void Rendar::renderPolygonList(list<polygon_t*> polygons)	{
 
-	polygon_t* curPoly = polygonList;
-
-	while( curPoly != NULL )	{
-		drawPolygon(curPoly);
-		curPoly = curPoly->next;
-	}
+	for(list<polygon_t*>::iterator itr = polygons.begin(); itr != polygons.end(); itr++)
+		drawPolygon((*itr));
 
 }
 
 void Rendar::renderBSPTree(bsp_node_t* tree)	{
 
-	if( tree == NULL )	{
-//		Con_print("NULL tree pointer in renderBSPTree()");
+	if( !tree )
 		return;
-	}
 
 	if( tree->isLeaf() )	{
 		renderPolygonList(tree->getPolygonList());
@@ -356,29 +319,6 @@ void Rendar::renderBSPTree(bsp_node_t* tree)	{
 		renderBSPTree(tree->front);
 	}
 }
-
-void Rendar::renderDynamicModels(float dt)	{
-	entity_t* e = dynamicModels;
-
-	while( e != NULL )	{
-		if( e->model )	{
-//			e->model->md2->setAnimation(e->model->action.c_str());
-			e->model->md2->advance(dt);
-
-			glPushMatrix();
-			glTranslatef(e->pos[0], e->pos[1], e->pos[2]);
-			GLfloat emis[] = {0.4, 0.4, 0.4};
-//			glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emis);
-
-			e->model->md2->draw();
-			glPopMatrix();
-
-		}
-
-		e = e->next;
-	}
-}
-
 
 
 void Rendar::bspFromObjModel(string modelName)	{
@@ -405,16 +345,7 @@ void Rendar::bspFromObjModel(string modelName)	{
 	bspRoot = new bsp_node_t;
 	bspRoot->root = true;
 
-	/*	// debugging stuffs
-	polygon_t* p = obj->polygonList;
-	int myPolyCount = 0;
-	while( p )	{
-		myPolyCount++;
-		p = p->next;
-	}
-
-	Con_print("myPolyCount: %d", myPolyCount);
-	*/
+	Con_print("obj->polygonList->count(): %d", obj->polygonList.size() );
 
 	generateBSPTree(bspRoot, obj->polygonList, width);
 	nameAndCachePolygons(bspRoot);
@@ -433,17 +364,13 @@ void Rendar::glCachePolygon(polygon_t* polygon)	{
 }
 
 void Rendar::nameAndCachePolygons(bsp_node_t* bspNode)	{
-	polygon_t* itr = bspNode->getPolygonList();
+	list<polygon_t*>::iterator itr;
 
 	if( bspNode->isLeaf() )	{
-		while(itr != NULL)	{
-			glCachePolygon(itr);
-			itr->polyID = itr->glCacheID;
+		for(itr = bspNode->beginPolyListItr(); itr != bspNode->endPolyListItr(); itr++)	{
+			glCachePolygon(*itr);
+			(*itr)->polyID = (*itr)->glCacheID;
 			cachedPolygonCount++;	// just for stats, may be removed later
-#ifdef BSPDEBUG
-			Con_print("Cached polygon #%d", cachedPolygonCount);	// TODO remove me or set to debug
-#endif
-			itr = itr->next;
 		}
 	}
 	else	{
@@ -453,7 +380,7 @@ void Rendar::nameAndCachePolygons(bsp_node_t* bspNode)	{
 }
 
 void Rendar::unCachePolygons(bsp_node_t* bspNode)	{
-	polygon_t* itr = bspNode->getPolygonList();
+	list<polygon_t*>::iterator itr;
 
 	if( !bspNode )	{
 #ifdef BSPDEBUG
@@ -464,15 +391,14 @@ void Rendar::unCachePolygons(bsp_node_t* bspNode)	{
 
 	if( bspNode->isLeaf() )	{
 #ifdef BSPDEBUG
-		cout << "unCachePolygons(): Found a leaf uncaching " << bspNode->getPolygonCount() << " polygons..." << endl;
+		cout << "unCachePolygons(): Found a leaf uncaching " << bspNode->getPolygonList().size() << " polygons..." << endl;
 #endif
-		while( itr != NULL )	{
-			int i = itr->glCacheID;
+		for(itr = bspNode->beginPolyListItr(); itr != bspNode->endPolyListItr(); itr++)	{
+			int i = (*itr)->glCacheID;
 			glDeleteLists(i, 1);
 			cachedPolygonCount--;
-			itr = itr->next;
 #ifdef BSPDEBUG
-			cout << "unCachePolygons(): glCacheID: " << itr->glCacheID << " cleared." << endl;
+			cout << "unCachePolygons(): glCacheID: " << (*itr)->glCacheID << " cleared." << endl;
 #endif
 		}
 	}
@@ -483,10 +409,6 @@ void Rendar::unCachePolygons(bsp_node_t* bspNode)	{
 		nameAndCachePolygons(bspNode->front);
 		nameAndCachePolygons(bspNode->back);
 	}
-}
-
-int Rendar::getCachedPolygonCount()	{
-	return cachedPolygonCount;
 }
 
 void Rendar::LoadModel(string name)	{
@@ -501,6 +423,14 @@ void Rendar::LoadModel(string name)	{
 
 }
 
+int Rendar::getCachedPolygonCount()	{
+	return cachedPolygonCount;
+}
+
+Camera* Rendar::getCamera()	{
+	return cam;
+}
+
 entity_t* Rendar::addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id)	{
 	entity_t* ent = new entity_t;
 
@@ -511,19 +441,31 @@ entity_t* Rendar::addEntityToScene(string modelName, vec3_t pos, vec3_t facing, 
 
 	// add to data structures
 	gameModels[ent->gameID] = ent;
-
-	dynamicModels = doublyLinkEntities(dynamicModels, ent);
+	dynamicModels.push_back(ent);
 
 	return ent;
 }
 
+void Rendar::renderDynamicModels(float dt)	{
+	list<entity_t*>::iterator itr;
+
+	for(itr=dynamicModels.begin(); itr!=dynamicModels.end(); itr++)	{
+		entity_t* e = (*itr);
+		if( e->model )	{
+//			e->model->md2->setAnimation(e->model->action.c_str());
+			e->model->md2->advance(dt);
+
+			glPushMatrix();
+			glTranslated(e->pos[0], e->pos[1], e->pos[2]);
+			e->model->md2->draw();
+			glPopMatrix();
+
+		}
+	}
+}
 
 void Rendar::setAnimation(entity_t* e, string animName)	{
 	e->model->md2->setAnimation(animName.c_str());
-}
-
-Camera* Rendar::getCamera()	{
-	return cam;
 }
 
 void Rendar::getCameraPos(vec3_t v)	{

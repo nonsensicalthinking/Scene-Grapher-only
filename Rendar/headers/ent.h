@@ -5,6 +5,7 @@
  *      Author: brof
  */
 
+#include "physics.h"
 #include "md2model.h"
 
 #ifndef ENT_H_
@@ -45,9 +46,6 @@ typedef struct entity_s	{
 //	bbox_t*	boundingBox; 	// constraints of bounding box
 	// end collision stuffs
 
-	struct entity_s* prev;
-	struct entity_s* next;
-
 	// flags for gameplay
 
 	// Returns TRUE if time is expired
@@ -81,9 +79,6 @@ inline entity_t* createEntity()	{
 	ent->facing[1] = 0;
 	ent->facing[2] = 0;
 
-	ent->prev = NULL;
-	ent->next = NULL;
-
 	return ent;
 }
 
@@ -99,64 +94,7 @@ inline void cleanEntity(entity_t* ent)	{
 	ent->model = NULL;
 	ent->collisionType = COLLISION_NONE;
 	ent->radius = 0;
-	ent->prev = NULL;
-	ent->next = NULL;
 }
-
-// prepends the new entity to the linked list pointed to by first
-// returns new front of linked list
-inline entity_t* doublyLinkEntities(entity_t* first, entity_t* newEnt)	{
-
-	if( first != NULL )	{
-		first->prev = newEnt;
-		newEnt->next = first;
-		newEnt->prev = NULL;
-	}
-	else	{
-		newEnt->prev = NULL;
-		newEnt->next = NULL;
-	}
-
-	return newEnt;
-}
-
-// returns new front of list
-// returns e when e is the front of the list and no other items
-// returns NULL on error
-inline entity_t* unlinkEntity(entity_t* list, entity_t* e)	{
-
-	entity_t* curEnt = list;
-
-	while(curEnt != NULL)	{
-		if( curEnt->entID == e->entID )	{
-			entity_t* newNextEnt = e->next;
-			entity_t* newPrevEnt = e->prev;
-
-			if( newNextEnt != NULL && newPrevEnt != NULL )	{
-				newNextEnt->prev = newPrevEnt;
-				newPrevEnt->next = newNextEnt;
-				return list;
-			}
-			else if( newNextEnt == NULL )	{	// item was at end of list and has prev
-				newPrevEnt->next = NULL;
-				return list;
-			}
-			else if( newPrevPoly == NULL )	{	// item was at front of list and has a next
-				newNextEnt->prev = NULL;
-				return newNextEnt;	// new front of list
-			}
-			else	{	// They're both NULL!
-				return e;	// no other items in list, return p to indicate that it was front
-			}
-		}
-
-		curEnt = curEnt->next;
-	}
-
-	return NULL;	// polygon not found in list
-}
-
-
 
 
 #endif /* ENT_H_ */

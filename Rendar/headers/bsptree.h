@@ -31,8 +31,8 @@ typedef struct bsp_node_s	{
 	bsp_node_s* back;
 
 	private:
-	polygon_t* polygonList;
-	int polygonListSize;
+	list<polygon_t*> polygonList;
+
 
 	public:
 
@@ -50,71 +50,44 @@ typedef struct bsp_node_s	{
 	// tempted to modify it elsewhere.
 
 	void addPolygon(polygon_t* poly)	{
-		polygonList = doublyLinkPolygons(polygonList, poly);
-		polygonListSize++;
+		polygonList.push_back(poly);
 	}
 
 	void removePolygon(polygon_t* poly)	{
-
-		polygon_t* p = unlinkPolygon(polygonList, poly);
-
-		if( p == NULL )	{
-			cout << "In func call removePolygon: Polygon not found." << endl;
-			return;
-		}
-
-		// p is the only item in the polygonList
-		if( p == poly )	{
-			polygonList = NULL;
-		}
-		else	{	// p is the new front
-			polygonList = p;
-		}
-
-		polygonListSize--;
+		polygonList.remove(poly);
 	}
 
 	void clearNode()	{
 		if( partition )
 			delete partition;
 
-		polygon_t* curPoly = polygonList;
-		polygon_t* freePoly;
-
-		while( curPoly != NULL )	{
-			freePoly = curPoly;
-			curPoly = curPoly->next;
-			delete freePoly;
+		int size = polygonList.size();
+		for(int x=0; x < size; x++)	{
+			polygon_t* poly = polygonList.front();
+			if( poly )
+				delete poly;
+			polygonList.pop_front();
 		}
-
 	}
 
-	polygon_t* getPolygonList()	{
+	list<polygon_t*>::iterator beginPolyListItr()	{
+		return polygonList.begin();
+	}
+
+	list<polygon_t*>::iterator endPolyListItr()	{
+		return polygonList.end();
+	}
+
+	list<polygon_t*> getPolygonList()	{
 		return polygonList;
 	}
 
-	void setPolygonList(polygon_t* polyList)	{
+	void setPolygonList(list<polygon_t*> polyList)	{
 		polygonList = polyList;
-
-		if( polyList == NULL )	{
-			polygonListSize = 0;
-		}
-		else	{
-			polygon_t* curPoly = polygonList;
-
-			while( curPoly != NULL )	{
-				polygonListSize++;
-				curPoly = curPoly->next;
-			}
-
-#ifdef BSPDEBUG
-			cout << "bspNode->setPolygonList(): Polygon count: " << polygonListSize++ << endl;
-#endif
-		}
 	}
 
 	int getPolygonCount()	{
-		return polygonListSize;
+		return polygonList.size();
 	}
 
 }bsp_node_t;
@@ -125,7 +98,7 @@ void buildTree(bsp_node_t*);
 void bspInOrderBackToFront(bsp_node_t* tree);
 void bspInOrderFrontToBack(bsp_node_t* tree);
 void deleteTree(bsp_node_t* bspRoot);
-void generateBSPTree(bsp_node_t* root, polygon_t* polygonList, float initialDiameter);
+void generateBSPTree(bsp_node_t* root, list<polygon_t*> polygonList, float initialDiameter);
 bsp_node_t* findBSPLeaf(bsp_node_t* bspRoot, const vec3_t pos);
 
 #endif /* BSPTREE_H_ */

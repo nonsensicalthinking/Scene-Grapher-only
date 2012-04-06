@@ -64,101 +64,54 @@ typedef struct model_s	{
 	MD2Model* md2;
 }model_t;
 
-
-
-//////////////// ENTITY & SUPPORT FUNCS ////////////////
-
 typedef struct entity_s {
 	vec3_t pos;
 	vec3_t facing;
 	int gameID;
 	string name;
 	model_t* model;
-
-	struct entity_s* prev;
-	struct entity_s* next;
 }entity_t;
 
 
-// prepends the new entity to the linked list pointed to by first
-// returns new front of linked list
-inline entity_t* doublyLinkEntities(entity_t* first, entity_t* newEnt)	{
 
-	if( first != NULL )	{
-		first->prev = newEnt;
-		newEnt->next = first;
-		newEnt->prev = NULL;
-	}
-	else	{
-		newEnt->prev = NULL;
-		newEnt->next = NULL;
+// NOTICE: TO CREATE A NEW POLYGON YOU SHOULD USE
+// THE createPolygon() FUNCTION.
+typedef struct polygon_s	{
+	unsigned int polyID;
+	int numPoints;
+	vec3_t points[MAX_POLY_POINTS];
+
+	bool isTextured;
+	vec2_t texpts[MAX_POLY_POINTS];
+
+	bool hasNormals;
+	vec3_t normpts[MAX_POLY_POINTS];
+
+	bool glCached;
+	unsigned int glCacheID;
+
+	bool hasMaterial;
+	char materialName[MAX_FILE_LENGTH];
+
+	bool selected;
+	vec3_t polygonDrawColor;
+}polygon_t;
+
+
+
+inline int generateHash(string value)	{
+	int len = value.length();
+	int hash = 119;
+
+	for(int x=0; x < len; x++)	{
+		hash += (int)value.at(x);
+		hash %= 1024;
 	}
 
-	return newEnt;
+	return hash;
 }
 
-// appends entity to linked list (slower than doublyLinkEntities, avoid during rendering)
-// returns front of list
-inline entity_t* appendEntityToLinkedList(entity_t* list, entity_t* ent)	{
 
-	if( list != NULL )	{
-		entity_t* cur = list;
-
-		while( cur->next != NULL )	// goto end of ll
-			cur = cur->next;
-
-		cur->next = ent;
-		ent->prev = cur;
-		ent->next = NULL;
-
-		return list;
-	}
-	else	{
-		ent->prev = NULL;
-		ent->next = NULL;
-
-		return ent;
-	}
-
-}
-
-// returns new front of list
-// returns e when e is the front of the list and no other items
-// returns NULL on error
-inline entity_t* unlinkEntity(entity_t* list, entity_t* e)	{
-
-	entity_t* curEnt = list;
-
-	while(curEnt != NULL)	{
-		if( curEnt->gameID == e->gameID )	{
-			entity_t* newNextEnt = e->next;
-			entity_t* newPrevEnt = e->prev;
-
-			if( newNextEnt != NULL && newPrevEnt != NULL )	{
-				newNextEnt->prev = newPrevEnt;
-				newPrevEnt->next = newNextEnt;
-				return list;
-			}
-			else if( newNextEnt == NULL )	{	// item was at end of list and has prev
-				newPrevEnt->next = NULL;
-				return list;
-			}
-			else if( newPrevEnt == NULL )	{	// item was at front of list and has a next
-				newNextEnt->prev = NULL;
-				return newNextEnt;	// new front of list
-			}
-			else	{	// They're both NULL!
-				return e;	// no other items in list, return p to indicate that it was front
-			}
-		}
-
-		curEnt = curEnt->next;
-	}
-
-	return NULL;	// polygon not found in list
-}
-
-//////////////// END ENTITY SUPPORT FUNCS ////////////////
 
 // Begin functions
 
@@ -181,6 +134,18 @@ inline float FastSqrt(float x){
 }
 
 
+// This should be used anytime we want to create a new polygon
+inline polygon_t* createPolygon()	{
+	polygon_t* poly = new polygon_t;
+
+	// any initialization should be done here
+
+	poly->selected = false;
+	poly->glCached = false;
+	poly->isTextured = false;
+
+	return poly;
+}
 
 // Begin Vector Functions
 inline void VectorPrint(const vec3_t v)	{
@@ -295,178 +260,6 @@ inline float VectorDistance(const vec3_t a, const vec3_t b)	{
 }
 
 // End Vector Functions
-
-
-//////////////// BEGIN POLY SUPPORT FUNCS ////////////////
-// NOTICE: TO CREATE A NEW POLYGON YOU SHOULD USE
-// THE createPolygon() FUNCTION.
-typedef struct polygon_s	{
-	unsigned int polyID;
-	int numPoints;
-	vec3_t points[MAX_POLY_POINTS];
-
-	bool isTextured;
-	vec2_t texpts[MAX_POLY_POINTS];
-
-	bool hasNormals;
-	vec3_t normpts[MAX_POLY_POINTS];
-
-	bool glCached;
-	unsigned int glCacheID;
-
-	bool hasMaterial;
-	char materialName[MAX_FILE_LENGTH];
-
-	bool selected;
-	vec3_t polygonDrawColor;
-
-	struct polygon_s* prev;
-	struct polygon_s* next;
-}polygon_t;
-
-// This should be used anytime we want to create a new polygon
-inline polygon_t* createPolygon()	{
-	polygon_t* poly = new polygon_t;
-
-	// any initialization should be done here
-	poly->polyID = 0;
-	poly->numPoints = 0;
-	poly->isTextured = false;
-	poly->hasNormals = false;
-	poly->glCached = false;
-
-	for(int x=0; x < MAX_POLY_POINTS; x++)	{
-		VectorCopy(ZERO_VECTOR, poly->points[x]);
-		VectorCopy(ZERO_VECTOR, poly->texpts[x]);
-		VectorCopy(ZERO_VECTOR, poly->normpts[x]);
-	}
-
-	poly->hasMaterial = false;
-	poly->materialName[0] = '\0';
-
-	poly->selected = false;
-
-	VectorCopy(ZERO_VECTOR, poly->polygonDrawColor);
-
-	poly->prev = NULL;
-	poly->next = NULL;
-
-	return poly;
-}
-
-inline polygon_t* copyPolygon(const polygon_t* p)	{
-	polygon_t* poly = new polygon_t;
-
-	// any initialization should be done here
-	poly->polyID = p->polyID;
-	poly->numPoints = p->numPoints;
-	poly->isTextured = p->isTextured;
-	poly->hasNormals = p->hasNormals;
-	poly->glCached = p->glCached;
-
-	for(int x=0; x < p->numPoints; x++)	{
-		VectorCopy(p->points[x], poly->points[x]);
-		VectorCopy(p->texpts[x], poly->texpts[x]);
-		VectorCopy(p->normpts[x], poly->normpts[x]);
-	}
-
-	poly->hasMaterial = p->hasMaterial;
-	strncpy(poly->materialName, p->materialName, MAX_FILE_LENGTH);
-
-	poly->selected = p->selected;
-
-	VectorCopy(p->polygonDrawColor, poly->polygonDrawColor);
-
-	poly->prev = NULL;
-	poly->next = NULL;
-
-	return poly;
-}
-
-// Prepends new polygon to linked list pointed to by first
-// returns new front of list
-inline polygon_t* doublyLinkPolygons(polygon_t* first, polygon_t* newPoly)	{
-	if( first != NULL )	{
-		first->prev = newPoly;
-		newPoly->prev = NULL;
-		newPoly->next = first;
-	}
-	else	{
-		newPoly->prev = NULL;
-		newPoly->next = NULL;
-	}
-
-
-	return newPoly;
-}
-
-// appends entity to linked list
-// returns front of list
-inline polygon_t* appendPolygonToLinkedList(polygon_t* list, polygon_t* poly)	{
-
-	if( poly == NULL )
-		return NULL;
-
-	if( list != NULL )	{
-		polygon_t* cur = list;
-
-		while( cur->next )	// goto end of ll
-			cur = cur->next;
-
-		cur->next = poly;
-		poly->prev = cur;
-		poly->next = NULL;
-
-		return list;
-	}
-	else	{
-		poly->prev = NULL;
-		poly->next = NULL;
-
-		return poly;
-	}
-
-}
-
-
-// returns new front of list
-// returns p when p is the front of the list and no other items
-// returns NULL on error
-inline polygon_t* unlinkPolygon(polygon_t* list, polygon_t* p)	{
-
-	polygon_t* curPoly = list;
-
-	while(curPoly != NULL)	{
-		if( curPoly->polyID == p->polyID )	{
-			polygon_t* newNextPoly = p->next;
-			polygon_t* newPrevPoly = p->prev;
-
-			if( newNextPoly != NULL && newPrevPoly != NULL )	{
-				newNextPoly->prev = newPrevPoly;
-				newPrevPoly->next = newNextPoly;
-				return list;
-			}
-			else if( newNextPoly == NULL && newPrevPoly == NULL )	{	// They're both NULL!
-				return p;	// no other items in list, return p to indicate that it was front
-			}
-			else if( newNextPoly == NULL )	{	// item was at end of list and has prev
-				newPrevPoly->next = NULL;
-
-				return list;
-			}
-			else if( newPrevPoly == NULL )	{	// item was at front of list and has a next
-				newNextPoly->prev = NULL;
-				return newNextPoly;	// new front of list
-			}
-		}
-
-		curPoly = curPoly->next;
-	}
-
-	return NULL;	// polygon not found in list
-}
-
-///////////////// END POLY SUPPORT FUNCS ///////////////////
 
 
 // Begin Geometric Functions

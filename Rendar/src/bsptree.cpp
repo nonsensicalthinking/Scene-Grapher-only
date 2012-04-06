@@ -219,7 +219,6 @@ bsp_node_t* getNewBSPNode()	{
 #endif
 	node->root = false;
 	node->partition = NULL;
-	node->setPolygonList(NULL);
 	node->parent = NULL;
 	node->front = NULL;
 	node->back = NULL;
@@ -228,8 +227,6 @@ bsp_node_t* getNewBSPNode()	{
 }
 
 
-// recursive call to build the bsp tree to the
-// depth specified by BSP_RECURSION_DEPTH
 void buildTree(bsp_node_t* currentNode)
 {
 	static int depth = 0;
@@ -245,36 +242,18 @@ void buildTree(bsp_node_t* currentNode)
 		// TODO get dynamic object list from this node and insert into master listing of dynobjlists
 		leafCount++;
 		depth--;
-
-#ifdef BSPDEBUG
-		polygon_t* ppp = currentNode->getPolygonList();
-		int counter = 0;
-		while(ppp)	{
-			counter++;
-			ppp = ppp->next;
-		}
-
-		cout << "There are " << counter << " polygons in leaf " << leafCount << endl;
-#endif
-
 		return;
 	}
 	else	{
 
 		float sideOfPlane = 0;
-		polygon_t* curPoly = NULL;
-		polygon_t* front_list = NULL;
-		polygon_t* back_list = NULL;
+		list<polygon_t*>::iterator itr;
+		list<polygon_t*> front_list;
+		list<polygon_t*> back_list;
 
-#ifdef BSPDEBUG
-		int loopCount = 0;
-#endif
+		for(itr=currentNode->beginPolyListItr(); itr != currentNode->endPolyListItr(); itr++)	{
+			polygon_t* curPoly = (*itr);
 
-		curPoly = currentNode->getPolygonList();
-		while( curPoly )	{
-#ifdef BSPDEBUG
-			cout << " LOOP #" << ++loopCount << endl;
-#endif
 			int polySide = classifyPolygon(currentNode->partition, curPoly);
 
 			if( polySide == SPANNING )	{
@@ -294,47 +273,22 @@ void buildTree(bsp_node_t* currentNode)
 
 				splitPolygon(curPoly, currentNode->partition, front_half, back_half);
 
-				front_list = doublyLinkPolygons(front_list, front_half);
-				back_list = doublyLinkPolygons(back_list, back_half);
+				front_list.push_back(front_half);
+				back_list.push_back(back_half);
 			}
 			else	{	// Polygon is on one side or the other
 				if( polySide == FRONT )	{ // Front side of plane
-//					cout << "Adding polygon to the front..." << endl;
-					polygon_t* fPoly = copyPolygon(curPoly);
-					front_list = doublyLinkPolygons(front_list, fPoly);
+					front_list.push_back(curPoly);
 				}
 				else	{// if( polySide == BACK )	// Back side of plane
-//					cout << "Adding polygon to the back..." << endl;
-					polygon_t* bPoly = copyPolygon(curPoly);
-					back_list = doublyLinkPolygons(back_list, bPoly);
+					back_list.push_back(curPoly);
 				}
 			}
-
-#ifdef BSPDEBUG
-			polygon_t* ppp = front_list;
-			int counter = 0;
-			while(ppp)	{
-				counter++;
-				ppp = ppp->next;
-			}
-
-			cout << "Front side poly split count: " << counter << endl;
-
-			ppp = back_list;
-			counter = 0;
-			while(ppp)	{
-				counter++;
-				ppp = ppp->next;
-			}
-
-			cout << "Back side poly split count: " << counter << endl;
-#endif
-			curPoly = curPoly->next;
 		}
 
 
 		/*
-		 * End polygon splitting, prepare for splitting
+		 * End polygon splitting, prepare for recursion
 		 */
 
 
@@ -363,8 +317,7 @@ void buildTree(bsp_node_t* currentNode)
 			VectorCopy(NORMAL_Z_DIR, bp->normal);
 			bp->diameter = diameter;
 
-		}
-		else	{	// PLANE_NORMAL_Z
+		}	else	{	// PLANE_NORMAL_Z
 			newFront[PLANE_NORMAL_Z] += currentNode->partition->diameter;
 			newBack[PLANE_NORMAL_Z] -= currentNode->partition->diameter;
 
@@ -396,48 +349,6 @@ void buildTree(bsp_node_t* currentNode)
 		nodeCount++;
 		back->nodeNumber = nodeCount;
 #endif
-
-
-
-		/*
-		 * 		FREE POLYGONS THAT WERE DIVIDED
-		 */
-
-		// free all polygons from node we just worked on
-		polygon_t* ppp = currentNode->getPolygonList();
-		polygon_t* temp;
-
-		while( ppp )	{
-
-			temp = ppp;
-			ppp = unlinkPolygon(ppp, temp);
-
-			if( ppp == NULL )	{
-				cout << "ERROR FREEING POLYGON IN BUILDTREE()" << endl;
-			}
-			else	{
-				if( temp == ppp )	// last node removed
-					currentNode->setPolygonList(NULL);
-				else
-					currentNode->setPolygonList(ppp);
-
-			}
-
-			ppp = currentNode->getPolygonList();	//equiv to ppp = ppp->next
-			delete temp;
-
-#ifdef BSPDEBUG
-			int nc = 0;
-			temp = currentNode->getPolygonList();
-			while( temp )	{
-				nc++;
-				temp = temp->next;
-			}
-
-			cout << "Polygon removed, new count: " << nc << endl;
-#endif
-
-		}
 
 		buildTree(front);
 		buildTree(back);
@@ -482,7 +393,7 @@ void bspInOrderFrontToBack(bsp_node_t* tree)	{
 	if( tree->isLeaf() )	{
 #ifdef BSPDEBUG
 		cout << "Found a leaf!" << endl;
-		cout << "Polygons: " << tree->getPolygonCount() << endl;
+		cout << "Polygons: " << tree->getPolygonList().size() << endl;
 #endif
 		return;
 	}
@@ -510,32 +421,26 @@ void deleteTree(bsp_node_t* tree)	{
 #endif
 		tree->clearNode();
 		delete tree;
-		return;
 	}
 	else	{
 		if( tree->front )
 			deleteTree(tree->front);
-
 		if( tree->back )
 			deleteTree(tree->back);
-
 #ifdef BSPDEBUG
 		cout << "Freeing Node# " << tree->nodeNumber << endl;
 #endif
-
 		if( tree->partition )
 			delete tree->partition;
 
 		if( tree )
 			delete tree;
-
-		return;
 	}
 
 }
 
 
-void generateBSPTree(bsp_node_t* root, polygon_t* polygonList, float initialDiameter)	{
+void generateBSPTree(bsp_node_t* root, list<polygon_t*> polygonList, float initialDiameter)	{
 
 	plane_t* partition = new plane_t;
 
