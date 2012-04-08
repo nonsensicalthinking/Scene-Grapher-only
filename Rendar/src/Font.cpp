@@ -14,6 +14,10 @@ Font::Font(float width, float height)	{
 	this->windowDimention = new dimention_t;
 	this->windowDimention->height = height;
 	this->windowDimention->width = width;
+	this->fontColor[0] = 1.0;
+	this->fontColor[1] = 1.0;
+	this->fontColor[2] = 1.0;
+
 
 	textures = getMaterialManager();
 
@@ -81,7 +85,8 @@ void Font::killFont(void) {
 
 void Font::glPrint(GLint x, GLint y, const char *string, int set) {
 
-	set = 1;
+	// override setting passed in
+	set = 0;
 
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
@@ -94,7 +99,8 @@ void Font::glPrint(GLint x, GLint y, const char *string, int set) {
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 			glLoadIdentity();
-			GLfloat emis[] = {0.0, 0.0, 0.0};
+			glColor3f(fontColor[0], fontColor[1], fontColor[2]);
+			GLfloat emis[] = {1.0, 1.0, 1.0};
 			glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emis);
 			glTranslated(x, y, 0);
 			glListBase(base - 32 + (128 * set));
@@ -106,6 +112,12 @@ void Font::glPrint(GLint x, GLint y, const char *string, int set) {
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
+}
+
+void Font::setFontColor(float color[3])	{
+	fontColor[0] = color[0];
+	fontColor[1] = color[1];
+	fontColor[2] = color[2];
 }
 
 

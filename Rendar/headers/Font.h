@@ -49,6 +49,7 @@ private:
 	GLfloat cnt1, cnt2;     /* counters for movement and coloring */
 	dimention_t *windowDimention;
 	MaterialManager* textures;
+	float fontColor[3];
 
 	string fontPath;
 
@@ -60,7 +61,7 @@ public:
 	void buildFont(void);
 	void killFont(void);
 	void glPrint(GLint x, GLint y, const char *string, int set);
-
+	void setFontColor(float color[3]);
 };
 
 

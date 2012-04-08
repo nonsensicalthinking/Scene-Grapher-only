@@ -134,10 +134,6 @@ void Rendar::gl_Init()	{
 	glutSetCursor(GLUT_CURSOR_NONE);
 #endif
 
-	sky = gluNewQuadric();
-	gluQuadricTexture(sky, true);
-	gluQuadricOrientation(sky, GLU_INSIDE);
-	matsMgr->loadBitmap(SKY_TEXTURE);
 	cacheSky();
 
 	//load basic textures for fonts and console
