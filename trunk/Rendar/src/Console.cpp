@@ -159,6 +159,8 @@ void Console::Draw()	{
 		glOrtho(0, screenWidth, 0, screenHeight, -1, 1);
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
+			// set font color
+	    	glColor3f(0.0, 0.0, 0.0);
 			glLoadIdentity();
 			GLfloat emis[] = {0.0, 0.0, 0.0};	// Make it black
 			glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emis);
@@ -173,9 +175,6 @@ void Console::Draw()	{
 		glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     glEnable(GL_DEPTH_TEST);
-
-    // set font color
-    glColor3f(0.0, 1.0, 0.0);
 
 	// Seek scroll position
 	strItr = output->end();
