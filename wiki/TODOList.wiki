@@ -2,6 +2,5 @@
 
 = TODO =
 
-  * Change all lists to linked lists
   * Implement AABB collision detection
   * Implement a shader system
