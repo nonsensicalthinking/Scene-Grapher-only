@@ -122,6 +122,10 @@ string* getCvarAddress_S(string name)	{
 	return cvarReg->getCvarAddress_S(name);
 }
 
+float* getCvarAddress_F(string name)	{
+	return cvarReg->getCvarAddress_F(name);
+}
+
 void printCvar(string args)	{
 	cvarReg->setCvar(args);
 }
@@ -299,13 +303,13 @@ void printGLInfo()	{
 	const char* gl_vendor = (const char*)glGetString(GL_VENDOR);
 	const char* gl_renderer = (const char*)glGetString(GL_RENDERER);
 	const char* gl_version = (const char*)glGetString(GL_VERSION);
-	const char* gl_shading = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+//	const char* gl_shading = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
 
 	Con_print("___OpenGL Version Information___");
 	Con_print("Vendor: %s", gl_vendor);
 	Con_print("Renderer: %s", gl_renderer);
 	Con_print("OpenGL Version: %s", gl_version);
-	Con_print("Shader Version: %s", gl_shading);
+//	Con_print("Shader Version: %s", gl_shading);
 
 }
 
@@ -317,6 +321,8 @@ void setAnimation(entity_t* e, string animName)	{
 entity_t* RegisterEntityWithScene(string model, vec3_t pos, vec3_t facing, int id)	{
 	if( rendarar )
 		return rendarar->addEntityToScene(model, pos, facing, id);
+
+	return NULL;
 }
 
 void LoadModel(string path)	{
@@ -348,6 +354,9 @@ bsp_node_t* getBSPTree()	{
 	return NULL;
 }
 
+void listCvars()	{
+	cvarReg->listCvars();
+}
 
 void printTextures()	{
 	if( rendarar )
@@ -370,6 +379,7 @@ void setGameCallBacks()	{
 			(void*)&getCvarAddress_I,
 			(void*)&getCvarAddress_D,
 			(void*)&getCvarAddress_S,
+			(void*)&getCvarAddress_F,
 			(void*)&registerCvar,
 			(void*)&registerCommand,
 			(void*)&registerCommandWithArgs,
@@ -539,6 +549,7 @@ int main(int argc, char** argv) {
 	registerCommandWithArgs("loadmd2", LoadModel, true);
 
 	registerCommand(		"tex_list", printTextures);
+	registerCommand(		"cvarList", listCvars);
 
 	rendarar->run();
 

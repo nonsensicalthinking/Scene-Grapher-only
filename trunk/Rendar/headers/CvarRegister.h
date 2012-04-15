@@ -6,6 +6,7 @@
 #define INT_CVAR	1
 #define DOUBLE_CVAR	2
 #define STRING_CVAR	4
+#define FLOAT_CVAR	6
 
 typedef struct configVariable_s	{
 	string name;
@@ -14,6 +15,7 @@ typedef struct configVariable_s	{
 	string s;
 	int i;
 	double d;
+	float f;
 }cvar_t;
 
 
@@ -34,6 +36,8 @@ public:
 	int* getCvarAddress_I(string name);
 	double* getCvarAddress_D(string name);
 	string* getCvarAddress_S(string name);
+	float* getCvarAddress_F(string name);
 	map<string,cvar_t*>::iterator lower_bound(string str);
 	map<string,cvar_t*>::iterator upper_bound(string str);
+	void listCvars();
 };

@@ -61,6 +61,9 @@ void CvarRegister::registerCvar(string name, string value, int type)	{
 		case STRING_CVAR:
 			cvar->s = value;
 			break;
+		case FLOAT_CVAR:
+			cvar->f = atof(value.c_str());
+			break;
 	}
 
 	registeredCvars[name] = cvar;
@@ -90,6 +93,9 @@ void CvarRegister::setCvar(string args)	{
 			case STRING_CVAR:
 				Con_print("%s = %s", c->name.c_str(), c->s.c_str());
 				break;
+			case FLOAT_CVAR:
+				Con_print("%s = %.4f", c->name.c_str(), c->f);
+				break;
 		}
 	}
 	else	{
@@ -106,6 +112,10 @@ void CvarRegister::setCvar(string args)	{
 				case STRING_CVAR:
 					c->s = value;
 					Con_print("%s = %s", c->name.c_str(), c->s.c_str());
+					break;
+				case FLOAT_CVAR:
+					c->f = atof(value);
+					Con_print("%s = %.4f", c->name.c_str(), c->f);
 					break;
 			}
 		}
@@ -155,6 +165,19 @@ string* CvarRegister::getCvarAddress_S(string name)	{
 	return &(cvar->s);
 }
 
+float* CvarRegister::getCvarAddress_F(string name)	{
+	map<string,cvar_t*>::iterator itr;
+
+	string_tolower(name);
+	itr = registeredCvars.find(name);
+
+	if( itr == registeredCvars.end() )
+		return NULL;
+
+	cvar_t* cvar = (*itr).second;
+	return &(cvar->f);
+}
+
 map<string,cvar_t*>::iterator CvarRegister::lower_bound(string str)	{
 	return registeredCvars.lower_bound(str);
 }
@@ -175,6 +198,35 @@ map<string,cvar_t*>::iterator CvarRegister::upper_bound(string str)	{
 	return itr;
 }
 
+void CvarRegister::listCvars()	{
+	map<string, cvar_t*>::iterator itr;
+	itr = registeredCvars.begin();
+	int x=0;
+
+	for(;itr!=registeredCvars.end(); itr++)	{
+		cvar_t* c = (*itr).second;
+		++x;
+
+		switch(c->typeFlag)	{
+		case INT_CVAR:
+			Con_print("%d: %s = %d", x, c->name.c_str(), c->i);
+			break;
+		case STRING_CVAR:
+			Con_print("%d: %s = %s", x, c->name.c_str(), c->s.c_str());
+			break;
+		case DOUBLE_CVAR:
+			Con_print("%d: %s = %.4f", x, c->name.c_str(), c->d);
+			break;
+		case FLOAT_CVAR:
+			Con_print("%d: %s = %.4f", x, c->name.c_str(), c->f);
+			break;
+		}
+
+	}
+
+	Con_print("-----------------------------");
+	Con_print("Total Registered Cvars: %d", x);
+}
 
 
 

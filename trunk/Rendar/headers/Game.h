@@ -16,6 +16,8 @@ class Game	{
 
 protected:
 	string gameName;
+	float timeElapsed;
+	float* maxPossible_dt;
 
 	void (*Con_print)(const char*, ...);
 	void (*LoadMap)(string);
@@ -26,6 +28,7 @@ protected:
 	int* (*getCvarAddress_I)(string);
 	double* (*getCvarAddress_D)(string);
 	string* (*getCvarAddress_S)(string);
+	float* (*getCvarAddress_F)(string);
 	void (*registerCvar)(string, string, int);
 	void (*registerCommand)(string, void (*func)());
 	void (*registerCommandWithArgs)(string, void (*func)(string), bool);
@@ -43,5 +46,6 @@ public:
 	virtual void printGameInfo();
 	virtual void processNormalKeys(unsigned char key, int x, int y);
 	virtual void processSpecialKeys(int key, int x, int y);
+	virtual void advance(float dt);
 };
 
