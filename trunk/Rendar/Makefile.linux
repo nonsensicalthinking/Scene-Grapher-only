@@ -9,14 +9,14 @@ TARGET = rendarar
 $(TARGET):	$(OBJS)
 	$(CXX) -o $(TARGET) $(OBJS) $(LIBS) $(INCS) $(CXXFLAGS)
 
-all:	$(TARGET)
-
-clean:
-	rm -f src/*.o $(TARGET)
-	rm libmygame.so
-
 mod:
 	$(CXX) -fPIC -c -I"./headers/" gameMod/MyGame.cpp
 	$(CXX) -shared -o libmygame.so MyGame.o
-	rm MyGame.o	
+
+all:	$(TARGET) mod
+
+clean:
+	rm -f src/*.o $(TARGET)
+	rm -f libmygame.so MyGame.o
+
 	
