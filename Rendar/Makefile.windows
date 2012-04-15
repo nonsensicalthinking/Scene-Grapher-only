@@ -17,6 +17,6 @@ clean:
 
 mod:
 	$(CXX) -c -DMyGame_dll -I"./headers/" gameMod/MyGame.cpp -o MyGame.o
-#	$(CXX) -c -I"./headers/" src/Game.cpp -o Game.o
+	$(CXX) -c -I"./headers/" src/Game.cpp -o Game.o
 	$(CXX) -shared -o MyGame.dll MyGame.o Game.o $(LIBS)
 	
