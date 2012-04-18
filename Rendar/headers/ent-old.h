@@ -4,7 +4,7 @@
  *  Created on: Aug 3, 2010
  *      Author: brof
  */
-
+/*
 #include "md2model.h"
 
 #ifndef ENT_H_
@@ -158,5 +158,6 @@ inline entity_t* unlinkEntity(entity_t* list, entity_t* e)	{
 
 
 
-
+*/
 #endif /* ENT_H_ */
+

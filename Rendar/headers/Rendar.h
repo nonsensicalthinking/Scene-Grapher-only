@@ -19,6 +19,7 @@
 #include "Camera.h"
 #include "bsptree.h"
 #include "Font.h"
+#include "entity.h"
 
 using namespace std;
 

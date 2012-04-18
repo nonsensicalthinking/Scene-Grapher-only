@@ -16,7 +16,7 @@
 
 using namespace std;
 
-extern long Sys_Milliseconds(void);
+extern long Sys_Milliseconds();
 extern void drawConsole();
 extern void Con_print(const char* fmt, ...);
 extern int* getCvarAddress_I(string s);
