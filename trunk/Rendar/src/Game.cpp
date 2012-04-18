@@ -1,6 +1,5 @@
 #include "Game.h"
 
-
 Game::Game()	{
 
 }
@@ -38,6 +37,42 @@ void Game::advance(float dSec)        {
 
 	if (numOfIterations != 0)                                               // Avoid Division By Zero
 			dSec = dSec / numOfIterations;                                  // dt Should Be Updated According To numOfIterations
+
+
+	if( physics != NULL )	{
+		for(int iteration=0; iteration < numOfIterations; iteration++)	{
+
+			// TODO remove all dynamic entities from bsp tree for calc/reinsertion
+
+			entity_t* removalList = NULL;
+
+			for(entity_t* e=activeEntities; e != NULL; e=e->next)	{
+				if( e->parishable && e->checkTTL() )	{
+					activeEntities = unlinkEntity(activeEntities, e);
+					// TODO properly re-initialize ent to be reused (e)
+					unusedEnts = reuseEntity(unusedEnts, e);
+				}
+				else	{
+					// TODO Do something
+					switch(e->mass->moveType)	{
+						case STATIONARY:
+							break;
+						case MOBILE:
+							physics->operate(dSec, e->mass);
+							break;
+					}
+
+
+					// TODO Place entity back into BSP Tree for collisions
+				}
+
+			}
+
+
+
+		}
+	}
+
 
 
 /*

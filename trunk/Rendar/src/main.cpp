@@ -16,6 +16,7 @@
 #include "strtools.h"
 #include "CvarRegister.h"
 #include "Game.h"
+#include "entity.h"
 #include <GL/glext.h>
 #include <sys/time.h>
 
@@ -34,24 +35,6 @@
 
 using namespace std;
 
-Rendar* rendarar;
-Console* con;
-CvarRegister* cvarReg;
-Game* g;
-
-string programPath;
-
-string getProgramPath()	{
-	return programPath;
-}
-
-string getCWD()	{
-	char path[1024];
-	size_t size;
-	getcwd(path,size);
-	string s = string(path);
-	return s;
-}
 
 /* From Quake 3 Arena
 ================
@@ -85,6 +68,31 @@ long Sys_Milliseconds (void)
 
 	return curtime;
 }
+
+
+
+
+
+
+Rendar* rendarar;
+Console* con;
+CvarRegister* cvarReg;
+Game* g;
+
+string programPath;
+
+string getProgramPath()	{
+	return programPath;
+}
+
+string getCWD()	{
+	char path[1024];
+	size_t size;
+	getcwd(path,size);
+	string s = string(path);
+	return s;
+}
+
 
 void drawConsole()	{
 	if( con->consoleActive )
@@ -497,6 +505,11 @@ void unloadGame()	{
 }
 
 
+void printEngineTime()	{
+	Con_print("Engine Time: %d", rendarTimeStamp);
+}
+
+
 void shutdown()	{
 	unloadGame();
 	delete rendarar;
@@ -550,6 +563,8 @@ int main(int argc, char** argv) {
 
 	registerCommand(		"tex_list", printTextures);
 	registerCommand(		"cvarList", listCvars);
+
+	registerCommand(		"et",		printEngineTime);
 
 	rendarar->run();
 

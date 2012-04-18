@@ -301,6 +301,15 @@ namespace {
 	*/
 }
 
+///////////////////////////////////////////////////////////////
+///////////////////////////LEFT OFF HERE///////////////////////
+///////////////////////////////////////////////////////////////
+
+
+// TODO MAKE SOMETHING SIMILAR TO CLONE MODEL IN ADDITION TO
+// DELETING MODEL, WE CAN DELETE MODELS WITH OUT HAVING TO CHECK
+// WHICH IS A TEMPLATE AND THIS AND THAT, JUST DELETE BY CLONING
+// BY MAKING AN EXACT COPY OF EACH FRAME, TEXCOORD, TRIANGLE.
 MD2Model::~MD2Model() {
 	if (frames != NULL) {
 		for(int i = 0; i < numFrames; i++) {

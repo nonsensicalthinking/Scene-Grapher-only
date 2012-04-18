@@ -1,6 +1,9 @@
 #include <iostream>
 #include "shared.h"
 #include "bsptree.h"
+#include "entity.h"
+#include "physics.h"
+
 
 #define CVAR_UNUSED		0
 #define CVAR_INT 		1
@@ -16,8 +19,17 @@ class Game	{
 
 protected:
 	string gameName;
-	float timeElapsed;
+
+	float timeElapsed;	// in seconds (?)
 	float* maxPossible_dt;
+
+	Simulation* physics;
+
+	entity_t* activeEntities;
+	entity_t* unusedEnts;
+
+
+
 
 	void (*Con_print)(const char*, ...);
 	void (*LoadMap)(string);

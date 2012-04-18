@@ -53,6 +53,7 @@ bool ModelManager::addModel(string name)	{
 		Con_print("File: %s", canonicalPath.c_str());
 
 		model_t* mod = new model_t;
+		mod->isTemplate = true;	// this should only be set to true for original files
 		mod->name = name;
 		mod->md2 = MD2Model::load(canonicalPath.c_str());
 
@@ -77,7 +78,7 @@ model_t* ModelManager::cloneModel(string name)	{
 
 	if( m != NULL )	{
 		model_t* clone = new model_t;
-
+		clone->isTemplate = false;
 		clone->cacheID = m->cacheID;
 		clone->name = m->name;
 		VectorCopy(m->dimensions, clone->dimensions);
