@@ -282,9 +282,22 @@ void changeSize(int w, int h)	{
 }
 
 
+float getTimeDelta()	{
+	static long prevTime = Sys_Milliseconds();
+	long curTime = Sys_Milliseconds();
+	long timeDiff = curTime - prevTime;
+	prevTime = curTime;
+	return timeDiff * 0.001;
+}
+
 void draw(void)	{
+
+	if( g )
+		g->advance(getTimeDelta());
+
 	if( rendarar )
 		rendarar->draw();
+
 }
 
 void vid_restart()	{
@@ -326,11 +339,9 @@ void setAnimation(entity_t* e, string animName)	{
 		rendarar->setAnimation(e, animName);
 }
 
-entity_t* RegisterEntityWithScene(string model, vec3_t pos, vec3_t facing, int id)	{
+void RegisterEntityWithScene(string model, entity_t* ent)	{
 	if( rendarar )
-		return rendarar->addEntityToScene(model, pos, facing, id);
-
-	return NULL;
+		rendarar->addEntityToScene(model, ent);
 }
 
 void LoadModel(string path)	{
@@ -376,6 +387,17 @@ void polygonCount()	{
 		Con_print("Cached polygons in scene: %d", rendarar->getCachedPolygonCount());
 }
 
+void screenPrint(int x, int y, const char* fmt, ...)	{
+	va_list args;
+	va_start(args,fmt);
+	char str[1024];
+	vsprintf(str, fmt, args);
+	va_end(args);
+
+	if( rendarar )
+		rendarar->screenPrint(x, y, str);
+}
+
 void setGameCallBacks()	{
 	void* funcs[] = {
 			(void*)&Con_print,
@@ -392,7 +414,8 @@ void setGameCallBacks()	{
 			(void*)&registerCommand,
 			(void*)&registerCommandWithArgs,
 			(void*)&getCameraPos,
-			(void*)&getCameraFacing
+			(void*)&getCameraFacing,
+			(void*)&screenPrint
 	};
 
 	g->setBulkCallBacks(funcs);

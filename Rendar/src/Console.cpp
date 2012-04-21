@@ -183,12 +183,12 @@ void Console::Draw()	{
 
 	// iterate and draw the console output backward so we can see most recent output
 	for(; (strItr!=output->begin() && lineNumber >= 0); strItr--, lineNumber--)
-		font->glPrint(left, (screenHeight-(lineNumber*16)), (*strItr).c_str(), 0);
+		font->glPrint(left, (screenHeight-(lineNumber*16)), (*strItr).c_str(), FONT_STYLE_NORMAL);
 
 	string s = ">" + inputString;
 
 	// draw input line
-	font->glPrint(left, screenHeight-((lines+1)*lineHeight), s.c_str(), 0);
+	font->glPrint(left, screenHeight-((lines+1)*lineHeight), s.c_str(), FONT_STYLE_NORMAL);
 
 }
 
