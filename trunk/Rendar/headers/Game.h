@@ -2,28 +2,26 @@
 #include "shared.h"
 #include "bsptree.h"
 #include "entity.h"
-#include "physics.h"
 
 
 #define CVAR_UNUSED		0
 #define CVAR_INT 		1
 #define CVAR_DOUBLE 	2
 #define CVAR_STRING 	4
-
+#define CVAR_FLOAT		6
 
 using namespace std;
 
 
 
 class Game	{
+	int nextGameId;
 
 protected:
 	string gameName;
 
 	float timeElapsed;	// in seconds (?)
 	float* maxPossible_dt;
-
-	Simulation* physics;
 
 	entity_t* activeEntities;
 	entity_t* unusedEnts;
@@ -34,7 +32,7 @@ protected:
 	void (*Con_print)(const char*, ...);
 	void (*LoadMap)(string);
 	void (*LoadModel)(string);
-	entity_t* (*RegisterEntityWithScene)(string, vec3_t, vec3_t, int);
+	void (*RegisterEntityWithScene)(string, entity_t*);
 	void (*setAnimation)(entity_t*, string);
 	bsp_node_t* (*getBSPTree)();
 	int* (*getCvarAddress_I)(string);
@@ -46,12 +44,14 @@ protected:
 	void (*registerCommandWithArgs)(string, void (*func)(string), bool);
 	void (*getCameraPos)(vec3_t);
 	void (*getCameraFacing)(vec3_t);
+	void (*screenPrint)(int, int, const char*, ...);
 
 public:
 	Game();
 	virtual ~Game();
 	virtual void init();
 	void setBulkCallBacks(void* funcs[]);
+	int getNextGameId();
 	virtual void newPacket();
 	void setName(string name);
 	string getName();
@@ -59,5 +59,6 @@ public:
 	virtual void processNormalKeys(unsigned char key, int x, int y);
 	virtual void processSpecialKeys(int key, int x, int y);
 	virtual void advance(float dt);
+	virtual void perFramePostPhysics();
 };
 

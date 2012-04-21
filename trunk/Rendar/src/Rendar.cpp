@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include <stdlib.h>
 #include "Rendar.h"
 #include "shared.h"
 #include "WavefrontObj.h"
@@ -209,13 +210,7 @@ void Rendar::tabulateFrameRate()	{
 }
 
 void Rendar::drawFPS()	{
-	int h = *r_height;
-	int w = *r_width;
-	static int INLET = (10.25*9);
-
-	stringstream s;
-	s << "FPS: " << frameRate;
-	screenPrinter->glPrint(0, 0, s.str().c_str(), 0);
+	screenPrint(0, 0, "FPS: %d", frameRate);
 }
 
 
@@ -244,10 +239,11 @@ void Rendar::draw(void)	{
 
 	renderDynamicModels(*r_modelAdvRate);
 
-	tabulateFrameRate();
 
-	if( *r_showFPS == 1 )
+	if( *r_showFPS == 1 )	{
+		tabulateFrameRate();
 		drawFPS();
+	}
 
 	glDisable(GL_LIGHTING);
 	drawConsole();		// render the console
@@ -357,6 +353,12 @@ void Rendar::renderDynamicModels(float dt)	{
 	entity_t* e = dynamicModels;
 
 	while( e != NULL )	{
+
+		// copy position out of mass if we have one, not all objects will have a mass
+		if( e->mass )	{
+			VectorCopy(e->mass->pos, e->pos);
+		}
+
 		if( e->model )	{
 //			e->model->md2->setAnimation(e->model->action.c_str());
 			e->model->md2->advance(dt);
@@ -497,20 +499,18 @@ void Rendar::LoadModel(string name)	{
 
 }
 
-entity_t* Rendar::addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id)	{
-	entity_t* ent = new entity_t;
+void Rendar::addEntityToScene(string modelName, entity_t* ent)	{
+//	entity_t* ent = new entity_t;
 
-	ent->gameID = id;
-	VectorCopy(pos, ent->pos);
-	VectorCopy(facing, ent->facing);
+//	ent->gameID = id;
+//	VectorCopy(pos, ent->pos);
+//	VectorCopy(facing, ent->facing);
 	ent->model = modelMgr->cloneModel(modelName);
 
 	// add to data structures
 	gameModels[ent->gameID] = ent;
 
 	dynamicModels = doublyLinkEntities(dynamicModels, ent);
-
-	return ent;
 }
 
 
@@ -529,3 +529,18 @@ void Rendar::getCameraPos(vec3_t v)	{
 void Rendar::getCameraFacing(vec3_t v)	{
 	VectorCopy(cam->normDir, v);
 }
+
+void Rendar::screenPrint(int x, int y, const char* fmt, ...)	{
+	va_list args;
+	va_start(args,fmt);
+	char str[1024];
+	vsprintf(str, fmt, args);
+	va_end(args);
+
+	screenPrinter->glPrint(x, y, str, FONT_STYLE_NORMAL);
+}
+
+void Rendar::screenPrint(int x, int y, string str)	{
+	screenPrinter->glPrint(x, y, str.c_str(), FONT_STYLE_NORMAL);
+}
+

@@ -19,7 +19,10 @@
 #define FONT_H_
 
 // distance between leading edges of letters in pixels
-#define LETTER_SPACING 13
+#define LETTER_SPACING 	13
+
+#define FONT_STYLE_NORMAL		0
+#define FONT_STYLE_ITALIC		1
 
 using namespace std;
 

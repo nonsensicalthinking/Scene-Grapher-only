@@ -5,6 +5,11 @@
 #include <iostream>
 #include "shared.h"
 
+#define 	MOVETYPE_STATIONARY		0
+#define 	MOVETYPE_GRAVITY		1
+
+const vec3_t EARTH_GRAV = {0.0, -9.8, 0.0};
+
 class Mass	{
 public:
 	int moveType;
@@ -18,9 +23,20 @@ public:
 	vec3_t force;				// Force applied on this mass at an instance
 	vec3_t rotationAxis;		// Axis of rotation
 
+	Mass(float mass)	{
+		moveType = MOVETYPE_STATIONARY;
+		m = mass;
+		rotationSpeed = 0;
+		instantSpeed = 0;
+		VectorCopy(ZERO_VECTOR, prevPos);
+		VectorCopy(ZERO_VECTOR, pos);
+		VectorCopy(ZERO_VECTOR, vel);
+		VectorCopy(ZERO_VECTOR, force);
+		VectorCopy(ZERO_VECTOR, rotationAxis);
+	}
 
-	Mass(float m)	{
-		this->m = m;
+	virtual ~Mass()	{
+
 	}
 
 	void applyForce(vec3_t force)	{
@@ -33,18 +49,167 @@ public:
 		force[2] = 0;
 	}
 
+	virtual void solve()	{
+
+	}
+
 	void simulate(float dt)	{
-		vec3_t velocityDelta;
+		// this switch statement stands in as an if statement
+		switch( moveType )	{
+		case MOVETYPE_STATIONARY:
+			break;
+		default:
+			vec3_t velocityDelta;
 
-		VectorDivide(force, m, velocityDelta);
-		VectorMA(vel, velocityDelta, dt, vel);
+			VectorDivide(force, m, velocityDelta);
+			VectorMA(vel, velocityDelta, dt, vel);
 
-		VectorCopy(pos, prevPos);		// save old position
+			VectorCopy(pos, prevPos);		// save old position
 
-		VectorMA(pos, vel, dt, pos);	// get new one!
+			VectorMA(pos, vel, dt, pos);	// get new one!
+			break;
+		}
+	}
+
+	void operate(float dt)	{
+		init();
+		solve();
+		simulate(dt);
 	}
 
 };
+
+
+class Gravity : public Mass	{
+public:
+	vec3_t gravitation;
+
+	Gravity(float m) : Mass(m)	{
+		gravitation[0] = 0.0;
+		gravitation[1] = -9.8;
+		gravitation[2] = 0.0;
+		moveType = MOVETYPE_GRAVITY;
+	}
+
+	void solve()	{
+		vec3_t gravity;
+		VectorScale(gravitation, m, gravity);
+		applyForce(gravity);
+	}
+
+};
+
+
+class Helicopter : public Mass	{
+public:
+	double upwardThrust;
+	vec3_t gravitation;
+
+	Helicopter(float m) : Mass(m)	{
+		moveType = MOVETYPE_GRAVITY;
+		upwardThrust = 0;
+		VectorCopy(EARTH_GRAV, gravitation);
+	}
+
+
+	void solve()	{
+
+		// gravity
+		vec3_t gravity;
+		VectorScale(gravitation, m, gravity);
+		applyForce(gravity);
+
+		// rotor blade thrust
+		vec3_t force;
+		VectorScale(NORMAL_Y, upwardThrust, force);
+		applyForce(force);
+
+	}
+
+};
+
+
+class Baseball : public Mass	{
+public:
+	vec3_t gravitation;
+	float sceneAdvRate;
+
+	Baseball(const vec3_t grav, float advRate, float m) : Mass(m)	{																		//Vector3D gravitation, is the gravitational acceleration
+		VectorCopy(grav, gravitation);
+		sceneAdvRate = advRate;
+	}
+
+	// Returns angular speed in rad/s (?)
+	float RPMtoAngularSpeed(float rpm)	{
+		return (TWO_PI_DIV_BY_60 * rpm) * sceneAdvRate;
+	}
+
+	// this only does drag coefficient for baseballs
+	// FIXME make this an index table instead
+	float getDragCoeff(int speed)	{
+		float drag = 0.0;
+
+		if( speed > 100 )
+			drag = 0.22;
+		else if( speed > 90 )
+			drag = 0.275;
+		else if( speed > 80 )
+			drag = 0.3;
+		else if( speed > 70 )
+			drag = 0.4;
+		else if( speed > 60 )
+			drag = 0.55;
+		else if( speed < 60 )
+			drag = 0.6;
+		else
+			drag = 0.6;
+
+		return drag;
+	}
+
+	virtual float magnusDecay(float rate, float decayRate)	{
+		return rate * decayRate;
+	}
+
+	virtual void solve(Mass* mass)	{
+		// Do gravity
+		vec3_t gravity;
+		VectorScale(gravitation, mass->m, gravity);
+		mass->applyForce(gravity);
+		float dragCoeff = getDragCoeff(mass->instantSpeed);
+
+
+		// Do Aerodynamic Drag
+		vec3_t dragForce;
+		VectorScale(mass->vel, dragCoeff, dragForce);
+		VectorNegate(dragForce, dragForce);
+		mass->applyForce(dragForce);
+
+		// Do Magnus Force
+		if( mass->rotationSpeed != 0 )	{
+			vec3_t result;
+			mass->instantSpeed = VectorLength(mass->vel);
+
+// its a beautiful thing!
+//			cout << "Speed: " << mass->instantSpeed << endl;
+
+			CrossProduct(mass->rotationAxis, mass->vel, result);
+			VectorScale(result, dragCoeff, result);
+
+
+			float rotSpeedRad = RPMtoAngularSpeed(mass->rotationSpeed);
+			// change for the next go around
+			mass->rotationSpeed = magnusDecay(mass->rotationSpeed, 0.99);
+
+			VectorScale(result, rotSpeedRad, result);
+
+			mass->applyForce(result);
+		}
+
+	}
+
+};
+
 
 
 #endif

@@ -15,7 +15,7 @@ typedef struct entity_s {
 	model_t* model;
 	Mass* mass;
 
-	bool parishable;
+	bool perishable;
 	long expirationTime;
 
 	bool checkTTL()	{
@@ -31,6 +31,20 @@ typedef struct entity_s {
 	struct entity_s* next;
 }entity_t;
 
+inline entity_t* createEntity()	{
+	entity_t* e = new entity_t;
+
+	VectorCopy(ZERO_VECTOR, e->pos);
+	VectorCopy(ZERO_VECTOR, e->facing);
+
+	e->gameID = -1;
+	e->name = "";
+	e->model = NULL;
+	e->mass = NULL;
+	e->perishable = false;
+
+	return e;
+}
 
 // prepends the new entity to the linked list pointed to by first
 // returns new front of linked list
@@ -121,7 +135,7 @@ inline entity_t* reuseEntity(entity_t* unusedList, entity_t* ent)	{
 	ent->gameID = 0;
 	ent->model = NULL;
 	ent->name = "";
-	ent->parishable = false;
+	ent->perishable = false;
 
 	ent->next = NULL;
 	ent->prev = NULL;

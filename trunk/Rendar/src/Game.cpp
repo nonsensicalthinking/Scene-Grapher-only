@@ -1,7 +1,9 @@
 #include "Game.h"
 
 Game::Game()	{
-
+	unusedEnts = NULL;
+	activeEntities = NULL;
+	nextGameId = 0;
 }
 
 
@@ -14,6 +16,9 @@ void Game::init()	{
 }
 
 void Game::advance(float dSec)        {
+
+//	Con_print("Calling advance...[%.2f]", dSec);
+//	Con_print("Max DT...........[%.2f]", *maxPossible_dt);
 
 	// Time work, used for Simulation work
 	// dt Is The Time Interval (As Seconds) From The Previous Frame To The Current Frame.
@@ -35,99 +40,57 @@ void Game::advance(float dSec)        {
 	//              cout << "** numOfIterations: " << numOfIterations << "\n";
 	//              cout << "** New numOfIterations: " << testNumOfIterations << "\n";
 
-	if (numOfIterations != 0)                                               // Avoid Division By Zero
-			dSec = dSec / numOfIterations;                                  // dt Should Be Updated According To numOfIterations
+	if (numOfIterations != 0)	// numOfIterations should never be zero, but just in case
+			dSec = dSec / numOfIterations;	// calc dt per iteration
 
+//	Con_print("numOfIterations[%d]", numOfIterations);
 
-	if( physics != NULL )	{
-		for(int iteration=0; iteration < numOfIterations; iteration++)	{
+	for(int iteration=0; iteration < numOfIterations; iteration++)	{
 
-			// TODO remove all dynamic entities from bsp tree for calc/reinsertion
+		// TODO remove all dynamic entities from bsp tree for calc/reinsertion
 
-			entity_t* removalList = NULL;
+		entity_t* removalList = NULL;
+		entity_t* e = activeEntities;
 
-			for(entity_t* e=activeEntities; e != NULL; e=e->next)	{
-				if( e->parishable && e->checkTTL() )	{
-					activeEntities = unlinkEntity(activeEntities, e);
-					// TODO properly re-initialize ent to be reused (e)
-					unusedEnts = reuseEntity(unusedEnts, e);
-				}
-				else	{
-					// TODO Do something
-					switch(e->mass->moveType)	{
-						case STATIONARY:
-							break;
-						case MOBILE:
-							physics->operate(dSec, e->mass);
-							break;
-					}
+		// NOTES: this while loop is sticky.  in the if statement for perishable and checkTTL()
+		// we need to increment the pointer first so we don't ref a deleted portion of memory.
+		// This means that we also need to increment the pointer in the else statement.
+		while( e != NULL )	{
+			if( e->perishable && e->checkTTL() )	{
+				entity_t* rem = e;
+				e = e->next;
 
-
-					// TODO Place entity back into BSP Tree for collisions
-				}
-
+				activeEntities = unlinkEntity(activeEntities, rem);
+				// TODO properly re-initialize ent to be reused (rem)
+				unusedEnts = reuseEntity(unusedEnts, rem);
 			}
+			else	{
 
+				// TODO Do something
+				e->mass->operate(dSec);
+//				Con_print("e->mass->pos: [%.2f, %.2f, %.2f]", e->mass->pos[0], e->mass->pos[1], e->mass->pos[2]);
+				e = e->next;
 
-
+				// TODO Place entity back into BSP Tree for collisions
+			}
 		}
 	}
 
+	perFramePostPhysics();
 
-
-/*
-	// Simulation work from here down
-	if( bbPhys != NULL )    {
-
-		for (int a = 0; a < numOfIterations; ++a)       // We Need To Iterate Simulations "numOfIterations" Times
-		{
-			// we don't need to remove all ents, when re-adding it will re-classify (I think, investigate this)
-	//                      removeEntitiesFromBSPTree();
-
-			// for number of masses do
-			vector<entity_t*> removalList;
-
-			for( list<entity_t*>::iterator itr = entityList.begin(); itr != entityList.end(); itr++)        {
-				if( (*itr)->parishable && (*itr)->checkTTL() )  {
-					removalList.push_back((*itr));
-				}
-				else    {
-					switch((*itr)->mass->moveType)  {
-						case MOVE_TYPE_AT_REST:
-								break;
-						case MOVE_TYPE_BASEBALL:
-								bbPhys->operate(dSec, (*itr)->mass);    // iterate the entity by dt seconds
-								break;
-					}
-
-					// TODO Insert entity once its been operated instead of calling another
-					// function to call a loop to do it.
-				}
-			}
-
-			for( int x=0; x < removalList.size(); x++)      {
-				bbPhys->release(removalList[x]->mass);
-				entity_t* cur = removalList[x];
-				cur->hasExpired = true;
-				entityList.remove(cur);
-				recycleEntity(cur);                                     // make entity available for use again.
-			}
-
-			insertEntitiesIntoBSPTree();
-		}
-
-
-	}
-*/
 }
 
+
+void Game::perFramePostPhysics()	{
+
+}
 
 void Game::setBulkCallBacks(void* funcs[])	{
 	int x=0;
 	Con_print = (void (*)(const char*, ...))funcs[x++];
 	LoadMap = (void (*)(string))funcs[x++];
 	LoadModel = (void (*)(string))funcs[x++];
-	RegisterEntityWithScene = (entity_t* (*)(string, vec3_t, vec3_t, int))funcs[x++];
+	RegisterEntityWithScene = (void (*)(string, entity_t*))funcs[x++];
 	setAnimation = (void (*)(entity_t*, string))funcs[x++];
 	getBSPTree = (bsp_node_t* (*)())funcs[x++];
 	getCvarAddress_I = (int* (*)(string))funcs[x++];
@@ -139,6 +102,7 @@ void Game::setBulkCallBacks(void* funcs[])	{
 	registerCommandWithArgs = (void (*)(string, void (*)(string), bool))funcs[x++];
 	getCameraPos = (void (*)(vec3_t))funcs[x++];
 	getCameraFacing = (void (*)(vec3_t))funcs[x++];
+	screenPrint = (void (*)(int, int, const char*, ...))funcs[x++];
 
 	registerCvar("g_max_dt", "0.008", 6);	//float cvar
 	maxPossible_dt = getCvarAddress_F("g_max_dt");
@@ -151,6 +115,10 @@ void Game::setName(string name)	{
 
 string Game::getName()	{
 	return gameName;
+}
+
+int Game::getNextGameId()	{
+	return nextGameId++;
 }
 
 void Game::newPacket()	{
@@ -168,5 +136,4 @@ void Game::processNormalKeys(unsigned char key, int x, int y)	{
 void Game::processSpecialKeys(int key, int x, int y)	{
 
 }
-
 

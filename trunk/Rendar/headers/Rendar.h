@@ -84,14 +84,15 @@ public:
 	void unCachePolygons(bsp_node_t* bspNode);
 	void LoadModel(string path);
 	int getCachedPolygonCount();
-	entity_t* addEntityToScene(string modelName, vec3_t pos, vec3_t facing, int id);
+	void addEntityToScene(string modelName, entity_t* ent);
 	void renderDynamicModels(float dt);
 	Camera* getCamera();
 	void setAnimation(entity_t* e, string animName);
 	void getCameraPos(vec3_t v);
 	void getCameraFacing(vec3_t v);
 	void cacheSky();
-
+	void screenPrint(int x, int y, const char* fmt, ...);
+	void screenPrint(int x, int y, string str);
 
 
 	void printTextures();
