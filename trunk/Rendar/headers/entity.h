@@ -8,8 +8,6 @@
 static long rendarTimeStamp;
 
 typedef struct entity_s {
-	vec3_t pos;
-	vec3_t facing;
 	int gameID;
 	string name;
 	model_t* model;
@@ -33,9 +31,6 @@ typedef struct entity_s {
 
 inline entity_t* createEntity()	{
 	entity_t* e = new entity_t;
-
-	VectorCopy(ZERO_VECTOR, e->pos);
-	VectorCopy(ZERO_VECTOR, e->facing);
 
 	e->gameID = -1;
 	e->name = "";
@@ -130,12 +125,13 @@ inline entity_t* unlinkEntity(entity_t* list, entity_t* e)	{
 // just re-initializes the struct and places
 // it at the front of the unusedList provided.
 inline entity_t* reuseEntity(entity_t* unusedList, entity_t* ent)	{
-	VectorCopy(ZERO_VECTOR, ent->pos);
-	VectorCopy(ZERO_VECTOR, ent->facing);
 	ent->gameID = 0;
 	ent->model = NULL;
 	ent->name = "";
 	ent->perishable = false;
+
+	if( ent->mass )
+		delete ent->mass;
 
 	ent->next = NULL;
 	ent->prev = NULL;
