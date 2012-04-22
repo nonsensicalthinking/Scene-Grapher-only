@@ -92,7 +92,7 @@ public:
 	void getCameraFacing(vec3_t v);
 	void cacheSky();
 	void screenPrint(int x, int y, const char* fmt, ...);
-	void screenPrint(int x, int y, string str);
+//	void screenPrint(int x, int y, string str);
 
 
 	void printTextures();

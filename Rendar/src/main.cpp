@@ -292,12 +292,14 @@ float getTimeDelta()	{
 
 void draw(void)	{
 
-	if( g )
-		g->advance(getTimeDelta());
 
 	if( rendarar )
 		rendarar->draw();
 
+	if( g )
+		g->advance(getTimeDelta());
+
+	glutSwapBuffers();	// this is here to accommodate print/draw requests issued from the game object
 }
 
 void vid_restart()	{

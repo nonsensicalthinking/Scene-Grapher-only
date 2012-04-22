@@ -73,6 +73,7 @@ Rendar::Rendar(string windowTitle) {
 	cam = new Camera();
 	bspRoot = NULL;
 	dynamicModels = NULL;
+
 }
 
 Rendar::~Rendar() {
@@ -147,7 +148,6 @@ void Rendar::gl_Init()	{
 void Rendar::run(void)	{
 	// this cannot be created in the constructor.
 	screenPrinter = new Font(1024,768);
-
 	glutMainLoop();
 }
 
@@ -247,8 +247,6 @@ void Rendar::draw(void)	{
 
 	glDisable(GL_LIGHTING);
 	drawConsole();		// render the console
-
-	glutSwapBuffers();
 
 }
 
@@ -539,8 +537,3 @@ void Rendar::screenPrint(int x, int y, const char* fmt, ...)	{
 
 	screenPrinter->glPrint(x, y, str, FONT_STYLE_NORMAL);
 }
-
-void Rendar::screenPrint(int x, int y, string str)	{
-	screenPrinter->glPrint(x, y, str.c_str(), FONT_STYLE_NORMAL);
-}
-
