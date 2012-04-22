@@ -7,7 +7,7 @@
 
 class MyGame : public Game	{
 	int nextGameId;
-	entity_t* flyer;
+	Helicopter* flyer;
 	double* g_maxThrust;
 	double* g_thrustInterval;
 

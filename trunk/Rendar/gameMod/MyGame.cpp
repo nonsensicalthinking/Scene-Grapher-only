@@ -26,8 +26,8 @@ MyGame::~MyGame()	{
 
 void MyGame::init()	{
 	registerCvar("g_name", getName(), CVAR_STRING);
-	registerCvar("g_maxthrust", "2000.0", CVAR_DOUBLE);
-	registerCvar("g_thrustinterval", "0.5", CVAR_DOUBLE);
+	registerCvar("g_maxthrust", "12.0", CVAR_DOUBLE);
+	registerCvar("g_thrustinterval", "0.05", CVAR_DOUBLE);
 	g_maxThrust = getCvarAddress_D("g_maxthrust");
 	g_thrustInterval = getCvarAddress_D("g_thrustinterval");
 	LoadModel("tall-alien.md2");
@@ -57,7 +57,8 @@ void MyGame::processNormalKeys(unsigned char key, int x, int y)	{
 
 	case 'k':
 		e = createEntity();
-		e->mass = new Helicopter(1);
+		flyer = new Helicopter(1);
+		e->mass = flyer;
 		getCameraPos(pos);
 		getCameraFacing(facing);
 		VectorMA(pos, facing, 10, pos);
@@ -67,16 +68,17 @@ void MyGame::processNormalKeys(unsigned char key, int x, int y)	{
 		RegisterEntityWithScene("greenalien.md2", e);	// make entity visible
 		activeEntities = doublyLinkEntities(activeEntities, e);			// make entity active!
 		setAnimation(e, "stand_");
-		flyer = e;
 		break;
 
 	case 'x':
-		Helicopter* m = (Helicopter*)flyer->mass;
+		if( flyer->upwardThrust < *g_maxThrust )
+			flyer->upwardThrust += *g_thrustInterval;
 
-		if( m->upwardThrust < *g_maxThrust )
-			m->upwardThrust += *g_thrustInterval;
+		break;
 
-		Con_print("Flyer Thrust: %.2f", m->upwardThrust);
+	case 'c':
+		if( flyer->upwardThrust > 0 )
+			flyer->upwardThrust -= *g_thrustInterval;
 
 		break;
 	}
@@ -94,10 +96,8 @@ void MyGame::printGameInfo()	{
 void MyGame::perFramePostPhysics()	{
 
 	if( flyer )	{
-		Helicopter* h = (Helicopter*)flyer->mass;
-
-		screenPrint(20, 20, "Upward Thrust: %.4f", h->upwardThrust);
-		screenPrint(20, 36, "X, Y, Z: %.4f, %.4f, %.4f", h->pos[0], h->pos[1], h->pos[2]);
-		screenPrint(20, 52, "Velocity: %.4f, %.4f, %.4f", h->vel[0], h->vel[1], h->vel[2]);
+		screenPrint(0, 100, "Upward Thrust: %.4f", flyer->upwardThrust);
+		screenPrint(0, 84, "X, Y, Z: %.4f, %.4f, %.4f", flyer->pos[0], flyer->pos[1], flyer->pos[2]);
+		screenPrint(0, 68, "Velocity: %.4f, %.4f, %.4f", flyer->vel[0], flyer->vel[1], flyer->vel[2]);
 	}
 }

@@ -107,7 +107,7 @@ public:
 
 	Helicopter(float m) : Mass(m)	{
 		moveType = MOVETYPE_GRAVITY;
-		upwardThrust = 0;
+		upwardThrust = 9.8;
 		VectorCopy(EARTH_GRAV, gravitation);
 	}
 
