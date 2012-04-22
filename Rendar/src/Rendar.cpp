@@ -353,16 +353,13 @@ void Rendar::renderDynamicModels(float dt)	{
 	while( e != NULL )	{
 
 		// copy position out of mass if we have one, not all objects will have a mass
-		if( e->mass )	{
-			VectorCopy(e->mass->pos, e->pos);
-		}
 
 		if( e->model )	{
 //			e->model->md2->setAnimation(e->model->action.c_str());
 			e->model->md2->advance(dt);
 
 			glPushMatrix();
-			glTranslatef(e->pos[0], e->pos[1], e->pos[2]);
+			glTranslatef(e->mass->pos[0], e->mass->pos[1], e->mass->pos[2]);
 			GLfloat emis[] = {0.4, 0.4, 0.4};
 //			glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emis);
 

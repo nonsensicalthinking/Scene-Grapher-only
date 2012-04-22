@@ -19,6 +19,8 @@ public:
 
 	vec3_t prevPos;				// previous position
 	vec3_t pos;					// Position in space
+	vec3_t facing;				// direction we're facing
+	vec3_t up;					// up direction
 	vec3_t vel;					// Velocity
 	vec3_t force;				// Force applied on this mass at an instance
 	vec3_t rotationAxis;		// Axis of rotation
@@ -102,12 +104,14 @@ public:
 
 class Helicopter : public Mass	{
 public:
-	double upwardThrust;
+	double power;
 	vec3_t gravitation;
+	double area;
 
 	Helicopter(float m) : Mass(m)	{
 		moveType = MOVETYPE_GRAVITY;
-		upwardThrust = 9.8;
+		area = 1809.5;
+		power = 50.0;
 		VectorCopy(EARTH_GRAV, gravitation);
 	}
 
@@ -119,9 +123,21 @@ public:
 		VectorScale(gravitation, m, gravity);
 		applyForce(gravity);
 
+		// a more sophisticated thrust calc
+		// power must be in hp
+
+		float pl;
+		if( power == 0 )
+			pl = 0.0001 / area;
+		else
+			pl = power / area;
+
+		float tl = 8.6859 * pow(pl, -0.3107);
+		float lift = tl * power;
+
 		// rotor blade thrust
 		vec3_t force;
-		VectorScale(NORMAL_Y, upwardThrust, force);
+		VectorScale(NORMAL_Y, lift, force);
 		applyForce(force);
 
 	}
