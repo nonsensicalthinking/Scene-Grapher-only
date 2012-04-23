@@ -223,6 +223,7 @@ bsp_node_t* getNewBSPNode()	{
 	node->parent = NULL;
 	node->front = NULL;
 	node->back = NULL;
+	node->entityList = NULL;
 
 	return node;
 }
@@ -590,7 +591,15 @@ bsp_node_t* findBSPLeaf(bsp_node_t* bspRoot, const vec3_t pos)	{
 	return NULL;
 }
 
+void clearBSPEntityReferences(bsp_node_t* bspNode)	{
+	if( bspNode->isLeaf() )	{
+		bspNode->entityList = NULL;
+		return;
+	}
 
+	clearBSPEntityReferences(bspNode->front);
+	clearBSPEntityReferences(bspNode->back);
+}
 
 
 

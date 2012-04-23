@@ -502,6 +502,13 @@ void Rendar::addEntityToScene(string modelName, entity_t* ent)	{
 //	VectorCopy(facing, ent->facing);
 	ent->model = modelMgr->cloneModel(modelName);
 
+	vec3_t xyzRadii;
+	xyzRadii[0] = ent->model->md2->xRadius;
+	xyzRadii[1] = ent->model->md2->yRadius;
+	xyzRadii[2] = ent->model->md2->zRadius;
+
+	ent->mass->makeAABB(xyzRadii);
+
 	// add to data structures
 	gameModels[ent->gameID] = ent;
 

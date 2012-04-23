@@ -30,9 +30,8 @@ void MyGame::init()	{
 	registerCvar("g_thrustinterval", "50.0", CVAR_DOUBLE);
 	g_maxThrust = getCvarAddress_D("g_maxthrust");
 	g_thrustInterval = getCvarAddress_D("g_thrustinterval");
-	LoadModel("hheli-sm.md2");
-	LoadModel("tall-alien.md2");
-	LoadMap("simple-demo.obj");
+
+	loadMapFile("desert-field.map");
 
 }
 
@@ -44,6 +43,7 @@ void MyGame::processNormalKeys(unsigned char key, int x, int y)	{
 	switch(key)	{
 	case 'l':
 		e = createEntity();
+		e->gameID = getNextGameId();
 		e->mass = new Mass(5);
 		getCameraPos(pos);
 		getCameraFacing(facing);
@@ -57,6 +57,7 @@ void MyGame::processNormalKeys(unsigned char key, int x, int y)	{
 
 	case 'k':
 		e = createEntity();
+		e->gameID = getNextGameId();
 		flyer = new Helicopter(1000.0);	// mass in kg?
 		e->mass = flyer;
 		getCameraPos(pos);
@@ -81,11 +82,6 @@ void MyGame::processNormalKeys(unsigned char key, int x, int y)	{
 
 		break;
 	}
-}
-
-
-void MyGame::newPacket()	{
-	cout << "Replaced new packet functionality." << endl;
 }
 
 void MyGame::printGameInfo()	{

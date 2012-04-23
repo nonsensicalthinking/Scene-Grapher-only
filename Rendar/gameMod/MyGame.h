@@ -16,7 +16,6 @@ public:
 	virtual ~MyGame();
 	void init();
 	void printGameInfo();
-	void newPacket();
 	void processNormalKeys(unsigned char key, int x, int y);
 	void perFramePostPhysics();
 };
