@@ -327,6 +327,7 @@ MD2Model::~MD2Model() {
 }
 
 MD2Model::MD2Model() {
+	xRadius = yRadius = zRadius = 0;
 	frames = NULL;
 	texCoords = NULL;
 	triangles = NULL;
@@ -335,6 +336,11 @@ MD2Model::MD2Model() {
 
 //Loads the MD2 model
 MD2Model* MD2Model::load(const char* filename) {
+	Vec3f xyzMin;
+	Vec3f xyzMax;
+
+
+
 	ifstream input;
 	input.open(filename, istream::binary);
 	
@@ -448,6 +454,11 @@ MD2Model* MD2Model::load(const char* filename) {
 			vertex->pos = translation + Vec3f(scale[0] * v[0],
 											  scale[1] * v[1],
 											  scale[2] * v[2]);
+
+			// added to get dimensions of model at load time
+			model->doDimensionCheck(vertex->pos);
+			// end dimension add
+
 			input.read(buffer, 1);
 			int normalIndex = (int)((unsigned char)buffer[0]);
 			vertex->normal = Vec3f(NORMALS[3 * normalIndex],
@@ -462,9 +473,29 @@ MD2Model* MD2Model::load(const char* filename) {
 	Con_print("numFrames: %d", numFrames );
 
 	Con_print("****MD2LOAD:FINISH****");
+	Con_print("MD2 Dimensions: %.3f x %.3f x %.3f", model->xRadius*2, model->yRadius*2, model->zRadius*2);
 
 	return model;
 }
+
+void MD2Model::doDimensionCheck(const Vec3f v)	{
+
+	for(int x=0; x < 3; x++)	{
+		if( v[x] > xyzMax[x] )	{
+			xyzMax[x] = v[x];
+		}
+
+		if( v[x] < xyzMin[x] )	{
+			xyzMin[x] = v[x];
+		}
+	}
+
+	xRadius = (xyzMax[0] - xyzMin[0])/2;
+	yRadius = (xyzMax[1] - xyzMin[1])/2;
+	zRadius = (xyzMax[2] - xyzMin[2])/2;
+}
+
+
 
 void MD2Model::setAnimation(const char* name) {
 	/* The names of frames normally begin with the name of the animation in
@@ -560,6 +591,9 @@ void MD2Model::draw() {
 MD2Model* MD2Model::clone()	{
 	MD2Model* clone = new MD2Model();
 
+	clone->xRadius = xRadius;
+	clone->yRadius = yRadius;
+	clone->zRadius = zRadius;
 	clone->frames = frames;
 	clone->numFrames = numFrames;
 	clone->texCoords = texCoords;

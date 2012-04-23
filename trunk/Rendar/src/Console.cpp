@@ -14,7 +14,7 @@
 
 using namespace std;
 
-extern void shutdown();
+//extern void shutdown();
 extern void Con_print(const char* fmt, ...);
 extern bool cvarRegistered(string name);
 extern void setCvar(string args);
@@ -286,6 +286,8 @@ map<string,cmd_t*>::iterator Console::cmdUpperBound(string str)	{
 		if( found != 0 )
 			return itr;
 	}
+
+	return registeredCommands.end();
 }
 
 

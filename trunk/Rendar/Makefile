@@ -13,7 +13,8 @@ $(TARGET):	$(OBJS)
 mod:
 	$(CXX) -c -DMyGame_dll -I"./headers/" gameMod/MyGame.cpp -o MyGame.o
 	$(CXX) -c -I"./headers/" src/Game.cpp -o Game.o
-	$(CXX) -shared -o MyGame.dll MyGame.o Game.o $(LIBS)
+	$(CXX) -c -I"./headers/" src/bsptree.cpp -o bsptree.o
+	$(CXX) -shared -o MyGame.dll MyGame.o Game.o bsptree.o $(LIBS)
 
 all:	$(TARGET) mod
 

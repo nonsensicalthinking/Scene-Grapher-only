@@ -27,6 +27,7 @@ typedef struct entity_s {
 
 	struct entity_s* prev;
 	struct entity_s* next;
+	struct entity_s* bspNext;
 }entity_t;
 
 inline entity_t* createEntity()	{
@@ -37,6 +38,9 @@ inline entity_t* createEntity()	{
 	e->model = NULL;
 	e->mass = NULL;
 	e->perishable = false;
+	e->prev = NULL;
+	e->next = NULL;
+	e->bspNext = NULL;
 
 	return e;
 }
@@ -135,6 +139,7 @@ inline entity_t* reuseEntity(entity_t* unusedList, entity_t* ent)	{
 
 	ent->next = NULL;
 	ent->prev = NULL;
+	ent->bspNext = NULL;
 
 	return doublyLinkEntities(unusedList, ent);
 }

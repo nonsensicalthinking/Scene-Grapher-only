@@ -9,6 +9,7 @@
 #ifndef BSPTREE_H_
 #define BSPTREE_H_
 #include <list>
+#include "entity.h"
 
 #define BSP_RECURSION_DEPTH		11
 
@@ -21,6 +22,7 @@
 
 
 typedef struct bsp_node_s	{
+public:
 #ifdef BSPDEBUG
 	int nodeNumber;
 #endif
@@ -30,11 +32,10 @@ typedef struct bsp_node_s	{
 	bsp_node_s* front;
 	bsp_node_s* back;
 
-	private:
 	polygon_t* polygonList;
 	int polygonListSize;
+	entity_t* entityList;
 
-	public:
 
 	// node helpers
 
@@ -43,6 +44,23 @@ typedef struct bsp_node_s	{
 			return false;
 
 		return true;
+	}
+
+
+	void addEntity(entity_t* ent)	{
+		ent->bspNext = NULL;
+
+		if( entityList == NULL )	{
+			entityList = ent;
+			return;
+		}
+
+		entity_t* cur = ent;
+		while(cur->bspNext)	{
+			cur = cur->bspNext;
+		}
+
+		cur->bspNext = ent;
 	}
 
 
@@ -87,6 +105,7 @@ typedef struct bsp_node_s	{
 			delete freePoly;
 		}
 
+		entityList = NULL;
 	}
 
 	polygon_t* getPolygonList()	{
@@ -127,5 +146,7 @@ void bspInOrderFrontToBack(bsp_node_t* tree);
 void deleteTree(bsp_node_t* bspRoot);
 void generateBSPTree(bsp_node_t* root, polygon_t* polygonList, float initialDiameter);
 bsp_node_t* findBSPLeaf(bsp_node_t* bspRoot, const vec3_t pos);
+void clearBSPEntityReferences(bsp_node_t* bspNode);
+
 
 #endif /* BSPTREE_H_ */

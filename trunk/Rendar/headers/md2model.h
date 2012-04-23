@@ -67,6 +67,14 @@ public:
 		int numTriangles;
 		GLuint textureId;
 		
+		Vec3f xyzMin;
+		Vec3f xyzMax;
+
+		float xRadius;
+		float yRadius;
+		float zRadius;
+
+
 		int startFrame; //The first frame of the current animation
 		int endFrame;   //The last frame of the current animation
 		
@@ -98,6 +106,8 @@ public:
 		//Loads an MD2Model from the specified file.  Returns NULL if there was
 		//an error loading it.
 		static MD2Model* load(const char* filename);
+
+		void doDimensionCheck(const Vec3f v);
 };
 
 

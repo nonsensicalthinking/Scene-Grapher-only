@@ -1,4 +1,5 @@
 #include <iostream>
+#include <math.h>
 #include "shared.h"
 #include "bsptree.h"
 #include "entity.h"
@@ -26,6 +27,7 @@ protected:
 	entity_t* activeEntities;
 	entity_t* unusedEnts;
 
+	bsp_node_t* bspRootNode;
 
 
 
@@ -60,5 +62,13 @@ public:
 	virtual void processSpecialKeys(int key, int x, int y);
 	virtual void advance(float dt);
 	virtual void perFramePostPhysics();
+	void processMapFileLine(string line);
+	void loadMapFile(string map);
+	virtual void collideWithPolygons(entity_t* ent, polygon_t* list);
+	virtual void collideWithEntities(entity_t* ent, entity_t* list);
+	virtual void insertEntityIntoBSPTree(entity_t* ent);
+	void entPolyCollision(entity_t* ent, polygon_t* p);
+	void entEntCollision(entity_t* e1, entity_t* e2);
+	bool testAABBCollision(entity_t* a, entity_t* b);
 };
 

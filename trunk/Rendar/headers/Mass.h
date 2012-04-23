@@ -25,6 +25,8 @@ public:
 	vec3_t force;				// Force applied on this mass at an instance
 	vec3_t rotationAxis;		// Axis of rotation
 
+	vec3_t xyzRadii;
+
 	Mass(float mass)	{
 		moveType = MOVETYPE_STATIONARY;
 		m = mass;
@@ -79,6 +81,10 @@ public:
 		simulate(dt);
 	}
 
+	void makeAABB(const vec3_t xyzRad)	{
+		VectorCopy(xyzRad, xyzRadii);
+	}
+
 };
 
 
@@ -117,7 +123,6 @@ public:
 
 
 	void solve()	{
-
 		// gravity
 		vec3_t gravity;
 		VectorScale(gravitation, m, gravity);
@@ -132,14 +137,13 @@ public:
 		else
 			pl = power / area;
 
-		float tl = 8.6859 * pow(pl, -0.3107);
+		float tl = 8.6859f * pow(pl, -0.3107f);
 		float lift = tl * power;
 
 		// rotor blade thrust
 		vec3_t force;
 		VectorScale(NORMAL_Y, lift, force);
 		applyForce(force);
-
 	}
 
 };
